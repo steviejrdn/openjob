@@ -1,0 +1,34 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode/deepseek-v4.1-flash",
+  "instructions": ["AGENTS.md"],
+  "permission": {
+    "bash": {
+      "*": "ask",
+      "bun --version": "allow",
+      "bun run .agents/skills/*/cli/src/cli.ts*": "allow",
+      "python salary_lookup.py*": "allow",
+      "python3 salary_lookup.py*": "allow",
+      "python tools/rank_state.py*": "allow",
+      "python3 tools/rank_state.py*": "allow",
+      "python tools/verify_pdf.py*": "allow",
+      "python3 tools/verify_pdf.py*": "allow",
+      "python tools/robots_check.py*": "allow",
+      "python3 tools/robots_check.py*": "allow",
+      "python3 tools/lint_skills.py*": "allow",
+      "pdftotext*": "allow"
+    }
+  },
+  "mcp": {
+    "workspace": {
+      "type": "local",
+      "command": ["uvx", "workspace-mcp", "--tools", "gmail", "--read-only"],
+      "enabled": false
+    },
+    "notion": {
+      "type": "remote",
+      "url": "https://mcp.notion.com/mcp",
+      "enabled": false
+    }
+  }
+}
