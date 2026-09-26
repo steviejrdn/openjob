@@ -16,6 +16,9 @@ const generated = await import("./generate.ts")
 import { Script } from "@opencode-ai/script"
 import pkg from "../package.json"
 
+const OpenJobVersion = process.env["OPENJOB_VERSION"] ?? "0.1.0"
+const binaryName = "openjob"
+
 const singleFlag = process.argv.includes("--single")
 const baselineFlag = process.argv.includes("--baseline")
 const skipInstall = process.argv.includes("--skip-install")
@@ -144,7 +147,7 @@ if (!skipInstall) {
 }
 for (const item of targets) {
   const name = [
-    pkg.name,
+    binaryName,
     // changing to win32 flags npm for some reason
     item.os === "win32" ? "windows" : item.os,
     item.arch,
@@ -174,9 +177,9 @@ for (const item of targets) {
       autoloadDotenv: false,
       autoloadTsconfig: true,
       autoloadPackageJson: true,
-      target: name.replace(pkg.name, "bun") as any,
-      outfile: `dist/${name}/bin/opencode`,
-      execArgv: [`--user-agent=opencode/${Script.version}`, "--use-system-ca", "--"],
+      target: name.replace(binaryName, "bun") as any,
+      outfile: `dist/${name}/bin/${binaryName}`,
+      execArgv: [`--user-agent=openjob/${OpenJobVersion}`, "--use-system-ca", "--"],
       windows: {},
     },
     files: {
@@ -192,6 +195,7 @@ for (const item of targets) {
     define: {
       FFF_LIBC: JSON.stringify(item.abi === "musl" ? "musl" : "gnu"),
       OPENCODE_VERSION: `'${Script.version}'`,
+      OPENJOB_VERSION: `'${OpenJobVersion}'`,
       OPENCODE_MODELS_DEV: generated.modelsData,
       OTUI_TREE_SITTER_WORKER_PATH: bunfsRoot + treeSitterWorkerPath,
       OPENCODE_WORKER_PATH: workerPath,
@@ -203,7 +207,7 @@ for (const item of targets) {
 
   // Smoke test: only run if binary is for current platform
   if (item.os === process.platform && item.arch === process.arch && !item.abi) {
-    const binaryPath = `dist/${name}/bin/opencode`
+    const binaryPath = `dist/${name}/bin/${binaryName}`
     console.log(`Running smoke test: ${binaryPath} --version`)
     try {
       const versionOutput = await $`${binaryPath} --version`.text()
@@ -240,6 +244,28 @@ if (Script.release) {
       await $`zip -r ../../${key}.zip *`.cwd(`dist/${key}/bin`)
     }
   }
+
+  // Bundle the job-search workspace template. The installer extracts this into
+  // the OpenJob runtime so `openjob` works out of the box in a fresh directory.
+  // Release builds run from a clean checkout, so only tracked template files
+  // (never personal data) are picked up here.
+  const workspace = "dist/workspace"
+  await $`rm -rf ${workspace}`
+  await $`mkdir -p ${workspace}`
+  await $`cp -r ../../../.openjob ${workspace}/.openjob`
+  await $`cp -r ../../../.agents ${workspace}/.agents`
+  await $`cp -r ../../../tools ${workspace}/tools`
+  await $`cp -r ../../../cv ${workspace}/cv`
+  await $`cp -r ../../../cover_letters ${workspace}/cover_letters`
+  await $`cp -r ../../../templates ${workspace}/templates`
+  await $`cp -r ../../../documents ${workspace}/documents`
+  await $`cp ../../../salary_lookup.py ${workspace}/salary_lookup.py`
+  await $`cp ../../../AGENTS.md.example ${workspace}/AGENTS.md.example`
+  await $`cp ../../../openjob.json ${workspace}/openjob.json`
+  await $`cp ../../../SECURITY.md ${workspace}/SECURITY.md`
+  await $`mkdir -p ${workspace}/job_scraper ${workspace}/upskill ${workspace}/company_research`
+  await $`tar -czf dist/openjob-workspace.tar.gz -C ${workspace} .`
+
   await $`gh release upload v${Script.version} ./dist/*.zip ./dist/*.tar.gz --clobber --repo ${process.env.GH_REPO}`
 }
 
