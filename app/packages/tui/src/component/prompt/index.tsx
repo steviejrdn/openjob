@@ -27,6 +27,7 @@ import { useSync } from "../../context/sync"
 import { useEvent } from "../../context/event"
 import { editorSelectionKey, useEditorContext, type EditorSelection } from "../../context/editor"
 import { normalizePromptContent, openEditor } from "../../editor"
+import { isOpenJobPaletteCommand } from "../../prompt/commands"
 import { useExit } from "../../context/exit"
 import { promptOffsetWidth } from "../../prompt/display"
 import { createStore, produce, unwrap } from "solid-js/store"
@@ -553,10 +554,12 @@ export function Prompt(props: PromptProps) {
           move.open()
         },
       },
-    ].map((entry) => ({
-      namespace: "palette",
-      ...entry,
-    })),
+    ]
+      .filter((entry) => isOpenJobPaletteCommand(entry.name))
+      .map((entry) => ({
+        namespace: "palette",
+        ...entry,
+      })),
   )
 
   useBindings(() => ({

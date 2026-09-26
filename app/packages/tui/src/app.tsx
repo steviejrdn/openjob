@@ -6,6 +6,7 @@ import { Global } from "@opencode-ai/core/global"
 import { Flag } from "@opencode-ai/core/flag/flag"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { BRAND } from "./branding"
+import { isOpenJobPaletteCommand } from "./prompt/commands"
 import { ClipboardProvider, useClipboard } from "./context/clipboard"
 import { ExitProvider, useExit } from "./context/exit"
 import { EpilogueProvider } from "./context/epilogue"
@@ -119,7 +120,7 @@ const appBindingCommands = [
   "variant.list",
   "provider.connect",
   "console.org.switch",
-  "opencode.status",
+  "openjob.status",
   "opencode.debug",
   "theme.switch",
   "theme.switch_mode",
@@ -764,7 +765,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
           ]
         : []),
       {
-        name: "opencode.status",
+        name: "openjob.status",
         title: "View status",
         slashName: "status",
         run: () => {
@@ -956,10 +957,12 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
           dialog.clear()
         },
       },
-    ].map((command) => ({
-      namespace: "palette",
-      ...command,
-    })),
+    ]
+      .filter((command) => isOpenJobPaletteCommand(command.name))
+      .map((command) => ({
+        namespace: "palette",
+        ...command,
+      })),
   )
 
   useBindings(() => ({

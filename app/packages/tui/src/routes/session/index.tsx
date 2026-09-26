@@ -22,6 +22,7 @@ import { useSync } from "../../context/sync"
 import { useEvent } from "../../context/event"
 import { SplitBorder } from "../../ui/border"
 import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
+import { isOpenJobPaletteCommand } from "../../prompt/commands"
 import { Spinner } from "../../component/spinner"
 import { createSyntaxStyleMemo, generateSubtleSyntax, selectedForeground, useTheme } from "../../context/theme"
 import { BoxRenderable, ScrollBoxRenderable, addDefaultParsers, TextAttributes, RGBA } from "@opentui/core"
@@ -1084,14 +1085,16 @@ export function Session() {
   ])
 
   const sessionCommands = createMemo(() =>
-    sessionCommandList().map((command) => ({
-      namespace: "palette",
-      name: command.value,
-      desc: "description" in command ? command.description : undefined,
-      slashName: "slash" in command ? command.slash?.name : undefined,
-      slashAliases: "slash" in command ? command.slash?.aliases : undefined,
-      ...command,
-    })),
+    sessionCommandList()
+      .filter((command) => isOpenJobPaletteCommand(command.value))
+      .map((command) => ({
+        namespace: "palette",
+        name: command.value,
+        desc: "description" in command ? command.description : undefined,
+        slashName: "slash" in command ? command.slash?.name : undefined,
+        slashAliases: "slash" in command ? command.slash?.aliases : undefined,
+        ...command,
+      })),
   )
 
   useBindings(() => ({
