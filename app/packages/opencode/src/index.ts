@@ -9,7 +9,7 @@ import { UpgradeCommand } from "./cli/cmd/upgrade"
 import { UninstallCommand } from "./cli/cmd/uninstall"
 import { ModelsCommand } from "./cli/cmd/models"
 import { UI } from "./cli/ui"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { OpenJobVersion } from "@opencode-ai/core/installation/version"
 import { FormatError } from "./cli/error"
 import { ServeCommand } from "./cli/cmd/serve"
 import { DebugCommand } from "./cli/cmd/debug"
@@ -34,7 +34,7 @@ const args = hideBin(process.argv)
 
 function show(out: string) {
   const text = out.trimStart()
-  if (!text.startsWith("opencode ")) {
+  if (!text.startsWith("openjob ")) {
     process.stderr.write(UI.logo() + EOL + EOL)
     process.stderr.write(text + EOL)
     return
@@ -44,11 +44,11 @@ function show(out: string) {
 
 const cli = yargs(args)
   .parserConfiguration({ "populate--": true })
-  .scriptName("opencode")
+  .scriptName("openjob")
   .wrap(100)
   .help("help", "show help")
   .alias("help", "h")
-  .version("version", "show version number", InstallationVersion)
+  .version("version", "show version number", OpenJobVersion)
   .alias("version", "v")
   .option("print-logs", {
     describe: "print logs to stderr",

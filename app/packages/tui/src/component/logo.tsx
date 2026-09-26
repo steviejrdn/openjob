@@ -1,61 +1,40 @@
-import { RGBA, TextAttributes } from "@opentui/core"
-import { For, type JSX } from "solid-js"
-import { tint, useTheme } from "../context/theme"
-import { logo } from "../logo"
+import { TextAttributes } from "@opentui/core"
+import { For, Show } from "solid-js"
+import { useTerminalDimensions } from "@opentui/solid"
+import { useTheme } from "../context/theme"
+import { openjobAscii } from "../logo"
+import { OpenJobVersion } from "@opencode-ai/core/installation/version"
 
 export function Logo() {
   const { theme } = useTheme()
-
-  const renderLine = (line: string, fg: RGBA, bold: boolean): JSX.Element[] => {
-    const shadow = tint(theme.background, fg, 0.25)
-    const attrs = bold ? TextAttributes.BOLD : undefined
-    return Array.from(line).map((char) => {
-      if (char === "_") {
-        return (
-          <text fg={fg} bg={shadow} attributes={attrs} selectable={false}>
-            {" "}
-          </text>
-        )
-      }
-      if (char === "^") {
-        return (
-          <text fg={fg} bg={shadow} attributes={attrs} selectable={false}>
-            ▀
-          </text>
-        )
-      }
-      if (char === "~") {
-        return (
-          <text fg={shadow} attributes={attrs} selectable={false}>
-            ▀
-          </text>
-        )
-      }
-      if (char === ",") {
-        return (
-          <text fg={shadow} attributes={attrs} selectable={false}>
-            ▄
-          </text>
-        )
-      }
-      return (
-        <text fg={fg} attributes={attrs} selectable={false}>
-          {char}
-        </text>
-      )
-    })
-  }
+  const dimensions = useTerminalDimensions()
+  const wideEnough = () => dimensions().width >= 46
 
   return (
-    <box>
-      <For each={logo.left}>
-        {(line, index) => (
-          <box flexDirection="row" gap={1}>
-            <box flexDirection="row">{renderLine(line, theme.textMuted, false)}</box>
-            <box flexDirection="row">{renderLine(logo.right[index()], theme.text, true)}</box>
+    <box alignItems="flex-start" aria-label="OpenJob">
+      <box flexDirection="row" gap={2} alignItems="flex-end">
+        <Show
+          when={wideEnough()}
+          fallback={
+            <text fg={theme.text} attributes={TextAttributes.BOLD} selectable={false}>
+              OPENJOB
+            </text>
+          }
+        >
+          <box>
+            <For each={openjobAscii}>
+              {(line) => (
+                <text fg={theme.text} selectable={false} wrapMode="none">
+                  {line}
+                </text>
+              )}
+            </For>
           </box>
-        )}
-      </For>
+        </Show>
+        <text fg={theme.textMuted} selectable={false}>
+          v{OpenJobVersion}
+        </text>
+      </box>
     </box>
   )
 }

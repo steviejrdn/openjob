@@ -63,7 +63,11 @@ async function input(value?: string) {
   return piped + "\n" + value
 }
 
-export function resolveThreadDirectory(project?: string, envPWD = process.env.PWD, cwd = process.cwd()) {
+export function resolveThreadDirectory(
+  project?: string,
+  envPWD = process.env.OPENJOB_PROJECT_DIR ?? process.env.PWD,
+  cwd = process.cwd(),
+) {
   const root = Filesystem.resolve(envPWD ?? cwd)
   if (project) return Filesystem.resolve(path.isAbsolute(project) ? project : path.join(root, project))
   return Filesystem.resolve(cwd)
@@ -71,12 +75,12 @@ export function resolveThreadDirectory(project?: string, envPWD = process.env.PW
 
 export const TuiThreadCommand = cmd({
   command: "$0 [project]",
-  describe: "start opencode tui",
+  describe: "start the OpenJob TUI",
   builder: (yargs) =>
     withNetworkOptions(yargs)
       .positional("project", {
         type: "string",
-        describe: "path to start opencode in",
+        describe: "path to start OpenJob in",
       })
       .option("model", {
         type: "string",
