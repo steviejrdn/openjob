@@ -1,0 +1,27 @@
+# Runtime (dev launcher sandbox)
+/runtime/
+/.runtime/
+/.tools/
+
+# Personal workspace data (never commit)
+/AGENTS.md
+/job_search_tracker.csv
+/company_research/*
+!/company_research/.gitkeep
+/documents/**
+!/documents/README.md
+!/documents/**/.gitkeep
+/cover_letters/*
+!/cover_letters/templates/
+/cv/*.pdf
+/cv/*.tex
+!/cv/templates/
+/salary_data.json
+
+# Python
+*.pyc
+__pycache__/
+.pytest_cache/
+
+# Node
+node_modules/
