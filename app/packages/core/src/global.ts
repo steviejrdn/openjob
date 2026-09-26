@@ -1,26 +1,27 @@
 import path from "path"
 import fs from "fs/promises"
-import { xdgData, xdgCache, xdgConfig, xdgState } from "xdg-basedir"
 import os from "os"
 import { Context, Effect, Layer } from "effect"
 import { Flock } from "./util/flock"
 import { Flag } from "./flag/flag"
 import { makeGlobalNode } from "./effect/app-node"
 
-const app = "opencode"
-const data = path.join(xdgData!, app)
-const cache = path.join(xdgCache!, app)
-const config = path.join(xdgConfig!, app)
-const state = path.join(xdgState!, app)
-const tmp = path.join(os.tmpdir(), app)
+const defaultRuntime = path.join(os.homedir(), ".local", "share", "openjob")
+const runtime = Flag.OPENJOB_RUNTIME_DIR ?? defaultRuntime
+const data = path.join(runtime, "data")
+const cache = path.join(runtime, "cache")
+const config = path.join(runtime, "config")
+const state = path.join(runtime, "state")
+const tmp = path.join(runtime, "tmp")
 
 const paths = {
+  runtime,
   get home() {
-    return process.env.OPENCODE_TEST_HOME ?? os.homedir()
+    return path.join(runtime, "home")
   },
   data,
   bin: path.join(cache, "bin"),
-  log: path.join(data, "log"),
+  log: path.join(runtime, "logs"),
   repos: path.join(data, "repos"),
   cache,
   config,
@@ -45,6 +46,7 @@ await Promise.all([
 export class Service extends Context.Service<Service, Interface>()("@opencode/Global") {}
 
 export interface Interface {
+  readonly runtime: string
   readonly home: string
   readonly data: string
   readonly cache: string
@@ -58,10 +60,11 @@ export interface Interface {
 
 export function make(input: Partial<Interface> = {}): Interface {
   return {
+    runtime: Path.runtime,
     home: Path.home,
     data: Path.data,
     cache: Path.cache,
-    config: Flag.OPENCODE_CONFIG_DIR ?? Path.config,
+    config: Path.config,
     state: Path.state,
     tmp: Path.tmp,
     bin: Path.bin,
