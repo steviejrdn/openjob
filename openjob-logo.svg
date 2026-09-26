@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="140" viewBox="0 0 520 140" role="img" aria-label="OpenJob">
+  <rect width="520" height="140" rx="18" fill="#0f172a"/>
+  <g fill="#e2e8f0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-weight="700" font-size="44" letter-spacing="2">
+    <text x="42" y="88">OPENJOB</text>
+  </g>
+  <rect x="42" y="104" width="150" height="6" rx="3" fill="#38bdf8"/>
+  <circle cx="470" cy="70" r="14" fill="none" stroke="#38bdf8" stroke-width="5"/>
+  <rect x="456" y="84" width="28" height="22" rx="6" fill="#38bdf8"/>
+</svg>

@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Capture the user's real home and the directory they invoked OpenJob from
+# before we override HOME/XDG_* for runtime isolation.
+real_home="${HOME:-}"
+project_dir="${PWD:-$(pwd -P)}"
+
+root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+runtime_dir="${OPENJOB_RUNTIME_DIR:-${root_dir}/.runtime}"
+read_runtime_dir=false
+for arg in "$@"; do
+  if [[ "${read_runtime_dir}" == true ]]; then
+    if [[ "${arg}" != -* ]]; then runtime_dir="${arg}"; fi
+    read_runtime_dir=false
+    continue
+  fi
+  case "${arg}" in
+    --runtime-dir=*) runtime_dir="${arg#*=}" ;;
+    --runtime-dir) read_runtime_dir=true ;;
+  esac
+done
+
+if [[ "${runtime_dir}" != /* ]]; then
+  relative_runtime_dir="${runtime_dir}"
+  runtime_dir="$(cd "${runtime_dir}" 2>/dev/null && pwd || true)"
+  if [[ -z "${runtime_dir}" ]]; then
+    runtime_dir="${root_dir}/${relative_runtime_dir}"
+  fi
+fi
+
+mkdir -p "${runtime_dir}"/{config,data,state,cache,logs,tmp,home}
+
+# Expose the repo's .openjob config (commands, skills, agents) and .agents
+# portal CLIs to OpenJob's config discovery from any project directory. The app
+# walks up from the runtime HOME looking for .openjob/.agents, so a symlink
+# there makes the bundled workspace available globally without touching the
+# project the user launched from.
+for entry in .openjob .agents; do
+  repo_entry="${root_dir}/${entry}"
+  home_entry="${runtime_dir}/home/${entry}"
+  if [[ -d "${repo_entry}" ]] && { [[ -L "${home_entry}" ]] || [[ ! -e "${home_entry}" ]]; }; then
+    ln -sfn "${repo_entry}" "${home_entry}"
+  fi
+done
+
+export OPENJOB_RUNTIME_DIR="${runtime_dir}"
+export OPENJOB_REAL_HOME="${real_home}"
+export OPENJOB_PROJECT_DIR="${project_dir}"
+export HOME="${runtime_dir}/home"
+export XDG_CONFIG_HOME="${runtime_dir}/config"
+export XDG_DATA_HOME="${runtime_dir}/data"
+export XDG_STATE_HOME="${runtime_dir}/state"
+export XDG_CACHE_HOME="${runtime_dir}/cache"
+export TMPDIR="${runtime_dir}/tmp"
+export TMP="${runtime_dir}/tmp"
+export TEMP="${runtime_dir}/tmp"
+export OPENJOB_MODE=1
+export OPENJOB_VERSION="0.1.0"
+
+# Set the title before Bun/OpenCode has a chance to publish its source-runner
+# title. The TUI also keeps the title branded after the renderer starts.
+if [[ -t 1 ]]; then
+  printf '\033]2;OpenJob\007'
+fi
+
+# Do not let inherited OpenCode controls escape the OpenJob runtime or replace
+# the direct OpenJob executable with another binary.
+for key in "${!OPENCODE_@}"; do unset "${key}"; done
+
+vendored_bun="${root_dir}/.tools/bun"
+if [[ ! -x "${vendored_bun}" ]]; then
+  "${root_dir}/scripts/ensure-bun" >&2 || {
+    echo "openjob: failed to ensure bun runtime" >&2
+    exit 1
+  }
+fi
+bun_bin="${vendored_bun}"
+
+if [[ ! -x "${bun_bin}" ]]; then
+  bun_bin="$(command -v bun || true)"
+fi
+if [[ -z "${bun_bin}" && -x "${root_dir}/.tools/node_modules/.bin/bun" ]]; then
+  bun_bin="${root_dir}/.tools/node_modules/.bin/bun"
+fi
+if [[ -z "${bun_bin}" ]]; then
+  echo "openjob: Bun is required. Install Bun or add it to PATH." >&2
+  exit 1
+fi
+
+exec "${bun_bin}" run --cwd "${root_dir}/app/packages/opencode" src/index.ts "$@"

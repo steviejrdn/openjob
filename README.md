@@ -1,0 +1,173 @@
+<p align="center">
+  <img src="openjob-logo.svg" alt="OpenJob" width="420">
+</p>
+
+# OpenJob
+
+*The job search that runs on your machine.*
+
+OpenJob is a command-line AI agent built for job searching. It is a fork of
+[OpenCode](https://github.com/anomalyco/opencode) wrapped around the
+[AI Job Search](https://github.com/MadsLorentzen/ai-job-search) workflow: a
+terminal user interface (TUI) that evaluates postings against your profile,
+tailors your CV and cover letters (LaTeX), and prepares you for interviews —
+no code involved.
+
+## Why OpenJob?
+
+Generic coding agents can write a cover letter; they do not know your profile,
+your tracker, or your deal-breakers. OpenJob ships the job-search workspace as a
+first-class citizen: commands, skills, portal CLIs, and a candidate profile that
+every command grounds its claims against. Run `/setup` once, then `/scrape`,
+`/rank`, `/apply`, and `/interview` on repeat.
+
+## Features
+
+- Terminal user interface (TUI) job-search shell with an OpenJob home screen
+- Bundled workspace: commands, skills, agents, portal CLIs, and Python tools
+- Multi-agent pipeline: fit evaluation, drafting, and an independent reviewer
+- LaTeX CV (moderncv/banking) and cover letter (`cover.cls`) templates
+- Job portal search CLIs (Jobbank, Jobdanmark, Jobindex, Jobnet, LinkedIn, Freehire)
+- Application tracking, outcomes, interview prep packs, and HTML reports
+- Candidate profile persisted in `AGENTS.md`
+- Runtime isolation; single self-contained binary (no Bun/Node required)
+- Built-in commands trimmed to the job-search surface (`/connect`, `/models`,
+  `/help`, `/new`, `/sessions`, `/themes`, `/exit`, `/status`)
+
+## Commands
+
+| Command | Purpose |
+|---|---|
+| `/setup` | Build the candidate profile from your CV and documents |
+| `/scrape` | Search job portals for new postings |
+| `/rank` | Score and shortlist postings |
+| `/apply` | Evaluate fit, then draft and verify CV + cover letter |
+| `/outcome` | Record what happened with an application |
+| `/interview` | Prepare a stage-specific interview prep pack |
+| `/expand` | Broaden search queries and target roles |
+| `/upskill` | Turn role gaps into a learning plan |
+| `/html-report` | Turn the tracker into a shareable report |
+| `/add-template` | Register a custom CV/cover template |
+| `/add-portal` | Generate a new portal search CLI |
+| `/reset` | Clear personal data from the workspace |
+
+## Prerequisites
+
+- A 64-bit Linux, macOS, or Windows machine (Windows via PowerShell, or WSL/Git Bash)
+- **Python 3.10+** for the `/rank`, `/apply`, and `/scrape` helper tools (standard library only)
+- Optional: `pip install pypdf` and/or Poppler `pdftotext` for `/apply`'s ATS parseability check
+- Optional: a LaTeX distribution with `lualatex` and `xelatex` to compile CVs and cover letters
+
+## Installation
+
+OpenJob ships as a single self-contained binary. No Bun, Node, or package manager
+is required.
+
+### Linux, macOS, and WSL/Git Bash
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/steviejrdn/openjob/main/scripts/install | bash
+```
+
+### Windows (PowerShell)
+
+```powershell
+powershell -ExecutionPolicy Bypass -Command "curl.exe -fsSL https://raw.githubusercontent.com/steviejrdn/openjob/main/scripts/install.ps1 -o $env:TEMP\install-openjob.ps1; & $env:TEMP\install-openjob.ps1"
+```
+
+### Install a specific version
+
+```bash
+OPENJOB_VERSION=0.1.0 bash <(curl -fsSL https://raw.githubusercontent.com/steviejrdn/openjob/main/scripts/install)
+```
+
+The installer places the binary on your `PATH` and extracts the workspace
+template to `~/.local/share/openjob/workspace`.
+
+## Usage
+
+```bash
+openjob                  # start the job-search TUI
+openjob -p "prompt"      # start with a prompt
+openjob --continue       # continue the last session
+openjob --session <id>   # continue a specific session
+```
+
+Inside the TUI, start with `/setup`. The full workflow guide lives in
+[WORKSPACE.md](WORKSPACE.md).
+
+### Starting a workspace
+
+The recommended setup is to clone this repository — the repo *is* a ready
+workspace — and run OpenJob from it:
+
+```bash
+git clone https://github.com/steviejrdn/openjob ~/my-job-search
+cd ~/my-job-search
+openjob
+```
+
+If you installed from a release, scaffold a fresh workspace from the template:
+
+```bash
+cp -r ~/.local/share/openjob/workspace ~/my-job-search
+cd ~/my-job-search
+openjob
+```
+
+Personal data (profile, CVs, tracker, application archive) is gitignored and
+never leaves your machine.
+
+## How it works
+
+- `openjob` routes work to specialized subagents: `job-application-assistant`
+  drafts, the `reviewer` subagent critiques with a fresh context.
+- Portal CLIs in `.agents/skills/*/cli/` are orchestrated by `/scrape`; each
+  `SKILL.md` documents its flags and its `enabled:` toggle.
+- Python tools in `tools/` move state through files (`seen_jobs.json`,
+  `job_search_tracker.csv`) instead of through the conversation.
+- Findings persist in `AGENTS.md`, the tracker, and
+  `documents/applications/<company>_<role>/`.
+
+## Contributing
+
+OpenJob is a fork of OpenCode. The fork lives in `app/`; this repo wraps it with
+the job-search workspace and a launcher. See [app/UPSTREAM.md](app/UPSTREAM.md)
+for the fork base and the list of patched files.
+
+Requirements: [Bun](https://bun.sh) 1.3.14 (vendored automatically) and Python 3.10+.
+
+```bash
+# Install dependencies
+cd app
+bun install
+
+# Run the dev TUI
+./scripts/openjob            # from the repo root
+# or directly from app/packages/opencode:
+bun run src/index.ts
+
+# Typecheck (all packages)
+cd app && bun turbo typecheck
+```
+
+### Release
+
+Releases are published automatically by GitHub Actions. Push a `vX.Y.Z` tag and
+the workflow cross-compiles all supported platforms, bundles the workspace
+template (`openjob-workspace.tar.gz`), and uploads the assets together with a
+`SHASUMS256.txt`.
+
+## Attribution
+
+OpenJob is a fork of [OpenCode](https://github.com/anomalyco/opencode) (MIT).
+The job-search workflow is a port of
+[AI Job Search](https://github.com/MadsLorentzen/ai-job-search) (MIT).
+See [LICENSE](LICENSE).
+
+OpenJob is not affiliated with, or endorsed by, OpenCode/Anomaly or the AI Job
+Search project.
+
+## License
+
+MIT

@@ -57,7 +57,7 @@ export async function input(prompt: string): Promise<string> {
   })
 
   return new Promise((resolve) => {
-    rl.question(prompt, (answer) => {
+    rl.question(prompt, (answer: string) => {
       rl.close()
       resolve(answer.trim())
     })

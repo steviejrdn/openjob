@@ -563,6 +563,7 @@
       "name": "opencode",
       "version": "1.18.32",
       "bin": {
+        "openjob": "./bin/openjob",
         "opencode": "./bin/opencode",
       },
       "dependencies": {

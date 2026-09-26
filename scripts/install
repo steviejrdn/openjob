@@ -1,0 +1,274 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# OpenJob installer — https://github.com/steviejrdn/openjob
+#
+# Installs the self-contained `openjob` binary plus the job-search workspace
+# template. Requires only curl or wget (and tar/unzip); Bun/Node are not needed.
+#
+# Usage:
+#   curl -fsSL https://raw.githubusercontent.com/steviejrdn/openjob/main/scripts/install | bash
+#   OPENJOB_VERSION=0.1.0 bash <(curl -fsSL https://raw.githubusercontent.com/steviejrdn/openjob/main/scripts/install)
+#   bash install --version 0.1.0 --install-dir /custom/bin
+#
+# Env overrides:
+#   OPENJOB_VERSION       version to install (default: latest release)
+#   OPENJOB_INSTALL_DIR   explicit install directory (top priority)
+#   OPENJOB_RUNTIME_DIR   runtime dir for workspace/config (default ~/.local/share/openjob)
+#   OPENJOB_REPO          GitHub repo for releases (default steviejrdn/openjob)
+#   OPENJOB_BASE_URL      override the download base URL (mirrors/testing)
+#   OPENJOB_WORKSPACE_DIR scaffold the workspace template into this directory
+#   XDG_BIN_DIR           alternative install directory
+
+REPO="${OPENJOB_REPO:-steviejrdn/openjob}"
+BASE_URL="https://github.com/${REPO}/releases/download"
+LATEST_URL="https://github.com/${REPO}/releases/latest/download"
+VERSION="${OPENJOB_VERSION:-latest}"
+INSTALL_DIR_ARG=""
+WORKSPACE_DIR="${OPENJOB_WORKSPACE_DIR:-}"
+
+usage() {
+  cat <<EOF
+OpenJob installer
+
+Usage: install [options]
+
+Options:
+  --version <ver>        Version to install (e.g. 0.1.0). Default: latest release.
+  --install-dir <d>      Install directory. Overrides OPENJOB_INSTALL_DIR.
+  --repo <owner/repo>    GitHub repo to download from. Overrides OPENJOB_REPO.
+  --workspace-dir <d>    Copy the workspace template into this directory.
+  -h, --help             Show this help.
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --version)
+      VERSION="${2:?--version requires a value}"
+      shift 2
+      ;;
+    --version=*) VERSION="${1#*=}"; shift ;;
+    --install-dir)
+      INSTALL_DIR_ARG="${2:?--install-dir requires a value}"
+      shift 2
+      ;;
+    --install-dir=*) INSTALL_DIR_ARG="${1#*=}"; shift ;;
+    --repo)
+      REPO="${2:?--repo requires a value}"
+      shift 2
+      ;;
+    --repo=*) REPO="${1#*=}"; shift ;;
+    --workspace-dir)
+      WORKSPACE_DIR="${2:?--workspace-dir requires a value}"
+      shift 2
+      ;;
+    --workspace-dir=*) WORKSPACE_DIR="${1#*=}"; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "install: unknown argument: $1" >&2; usage >&2; exit 1 ;;
+  esac
+done
+
+# ─── Platform detection ────────────────────────────────────────────────────
+
+OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+ARCH="$(uname -m)"
+
+case "${OS}" in
+  linux) OS="linux" ;;
+  darwin) OS="darwin" ;;
+  mingw*|msys*|cygwin*|windowsnt*) OS="windows" ;;
+  *) echo "install: unsupported OS: ${OS}" >&2; exit 1 ;;
+esac
+
+case "${ARCH}" in
+  x86_64|amd64) ARCH="x64" ;;
+  aarch64|arm64) ARCH="arm64" ;;
+  *) echo "install: unsupported architecture: ${ARCH}" >&2; exit 1 ;;
+esac
+
+detect_musl() {
+  if [[ -f /etc/alpine-release ]]; then return 0; fi
+  if command -v ldd >/dev/null 2>&1 && ldd --version 2>&1 | grep -qi musl; then return 0; fi
+  return 1
+}
+
+supports_avx2() {
+  if [[ "${ARCH}" != "x64" ]]; then return 0; fi
+  case "${OS}" in
+    linux)
+      [[ -f /proc/cpuinfo ]] || return 1
+      grep -qiE '(^|\s)avx2(\s|$)' /proc/cpuinfo 2>/dev/null
+      ;;
+    darwin)
+      [[ "$(sysctl -n hw.optional.avx2_0 2>/dev/null || echo 0)" == "1" ]]
+      ;;
+    windows)
+      local out
+      out="$(powershell.exe -NoProfile -NonInteractive -Command '(Add-Type -MemberDefinition "[DllImport(\"kernel32.dll\")] public static extern bool IsProcessorFeaturePresent(int ProcessorFeature);" -Name Kernel32 -Namespace Win32 -PassThru)::IsProcessorFeaturePresent(40)' 2>/dev/null || true)"
+      [[ "${out}" == "1" || "${out}" =~ ^[Tt]rue$ ]]
+      ;;
+    *) return 1 ;;
+  esac
+}
+
+MUSL=""
+if [[ "${OS}" == "linux" ]] && detect_musl; then MUSL="-musl"; fi
+BASELINE=""
+if [[ "${ARCH}" == "x64" ]] && ! supports_avx2; then BASELINE="-baseline"; fi
+
+ASSET="openjob-${OS}-${ARCH}${BASELINE}${MUSL}"
+if [[ "${OS}" == "linux" ]]; then
+  EXT="tar.gz"
+else
+  EXT="zip"
+fi
+ASSET_FILE="${ASSET}.${EXT}"
+if [[ "${OS}" == "windows" ]]; then BIN_NAME="openjob.exe"; else BIN_NAME="openjob"; fi
+
+echo "OpenJob installer"
+echo "  OS: ${OS}  Arch: ${ARCH}${BASELINE}${MUSL}  Asset: ${ASSET_FILE}  Version: ${VERSION}"
+
+# ─── Resolve install dir ───────────────────────────────────────────────────
+
+resolve_install_dir() {
+  if [[ -n "${INSTALL_DIR_ARG:-}" ]]; then echo "${INSTALL_DIR_ARG}"; return; fi
+  if [[ -n "${OPENJOB_INSTALL_DIR:-}" ]]; then echo "${OPENJOB_INSTALL_DIR}"; return; fi
+  if [[ -n "${XDG_BIN_DIR:-}" ]]; then echo "${XDG_BIN_DIR}"; return; fi
+  if [[ -n "${HOME:-}" && -d "${HOME}/.local/bin" ]]; then echo "${HOME}/.local/bin"; return; fi
+  if [[ -n "${HOME:-}" && -d "${HOME}/bin" ]]; then echo "${HOME}/bin"; return; fi
+  echo "${HOME:-$HOME}/.local/bin"
+}
+INSTALL_DIR="$(resolve_install_dir)"
+RUNTIME_DIR="${OPENJOB_RUNTIME_DIR:-${HOME}/.local/share/openjob}"
+
+# ─── Download + verify ─────────────────────────────────────────────────────
+
+download() {
+  local url="$1" out="$2"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "${url}" -o "${out}"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q "${url}" -O "${out}"
+  else
+    echo "install: curl or wget is required" >&2
+    exit 1
+  fi
+}
+
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "${TMP_DIR}"' EXIT
+EXTRACT_DIR="${TMP_DIR}/extract"
+
+if [[ -n "${OPENJOB_BASE_URL:-}" ]]; then
+  DOWNLOAD_BASE="${OPENJOB_BASE_URL}"
+elif [[ "${VERSION}" == "latest" ]]; then
+  DOWNLOAD_BASE="${LATEST_URL}"
+else
+  DOWNLOAD_BASE="${BASE_URL}/v${VERSION}"
+fi
+
+echo "  Downloading ${DOWNLOAD_BASE}/${ASSET_FILE}"
+download "${DOWNLOAD_BASE}/${ASSET_FILE}" "${TMP_DIR}/${ASSET_FILE}"
+
+if download "${DOWNLOAD_BASE}/SHASUMS256.txt" "${TMP_DIR}/SHASUMS256.txt" 2>/dev/null; then
+  EXPECTED="$(awk -v a="${ASSET_FILE}" '$2 == a { print $1; exit }' "${TMP_DIR}/SHASUMS256.txt" || true)"
+  if [[ -n "${EXPECTED}" ]]; then
+    if command -v sha256sum >/dev/null 2>&1; then
+      ACTUAL="$(sha256sum "${TMP_DIR}/${ASSET_FILE}" | awk '{print $1}')"
+    elif command -v shasum >/dev/null 2>&1; then
+      ACTUAL="$(shasum -a 256 "${TMP_DIR}/${ASSET_FILE}" | awk '{print $1}')"
+    else
+      ACTUAL=""
+    fi
+    if [[ -n "${ACTUAL}" && "${ACTUAL}" != "${EXPECTED}" ]]; then
+      echo "install: SHA256 verification failed for ${ASSET_FILE}" >&2
+      exit 1
+    fi
+    echo "  SHA256 verified"
+  else
+    echo "  WARNING: ${ASSET_FILE} not found in SHASUMS256.txt; skipping verification"
+  fi
+else
+  echo "  WARNING: could not fetch SHASUMS256.txt; skipping verification"
+fi
+
+mkdir -p "${EXTRACT_DIR}"
+case "${EXT}" in
+  tar.gz) tar -xzf "${TMP_DIR}/${ASSET_FILE}" -C "${EXTRACT_DIR}" ;;
+  zip)
+    if command -v unzip >/dev/null 2>&1; then
+      unzip -q "${TMP_DIR}/${ASSET_FILE}" -d "${EXTRACT_DIR}"
+    else
+      echo "install: unzip is required" >&2
+      exit 1
+    fi
+    ;;
+esac
+
+# ─── Install binary ────────────────────────────────────────────────────────
+
+BIN_SRC="$(find "${EXTRACT_DIR}" -maxdepth 1 -type f -name "${BIN_NAME}*" | head -n 1)"
+if [[ -z "${BIN_SRC}" ]]; then
+  echo "install: ${BIN_NAME} not found in archive" >&2
+  exit 1
+fi
+
+mkdir -p "${INSTALL_DIR}"
+install -m 755 "${BIN_SRC}" "${INSTALL_DIR}/${BIN_NAME}"
+echo "  Installed ${INSTALL_DIR}/${BIN_NAME}"
+
+if [[ ":$PATH:" != *":${INSTALL_DIR}:"* ]]; then
+  echo "  NOTE: ${INSTALL_DIR} is not on your PATH."
+  echo "        Add it with: export PATH=\"${INSTALL_DIR}:\$PATH\""
+fi
+
+# ─── Workspace template ────────────────────────────────────────────────────
+
+mkdir -p "${RUNTIME_DIR}"
+WORKSPACE_EXTRACT="${TMP_DIR}/workspace"
+mkdir -p "${WORKSPACE_EXTRACT}"
+if download "${DOWNLOAD_BASE}/openjob-workspace.tar.gz" "${TMP_DIR}/openjob-workspace.tar.gz" 2>/dev/null; then
+  tar -xzf "${TMP_DIR}/openjob-workspace.tar.gz" -C "${WORKSPACE_EXTRACT}"
+  rm -rf "${RUNTIME_DIR}/workspace"
+  mkdir -p "${RUNTIME_DIR}/workspace"
+  cp -r "${WORKSPACE_EXTRACT}/." "${RUNTIME_DIR}/workspace/"
+  echo "  Workspace template installed to ${RUNTIME_DIR}/workspace"
+
+  if [[ -n "${WORKSPACE_DIR}" ]]; then
+    mkdir -p "${WORKSPACE_DIR}"
+    cp -r "${WORKSPACE_EXTRACT}/." "${WORKSPACE_DIR}/"
+    echo "  Workspace scaffolded in ${WORKSPACE_DIR}"
+  fi
+else
+  echo "  WARNING: could not download openjob-workspace.tar.gz; workspace template skipped"
+fi
+
+# ─── Optional Python tooling ───────────────────────────────────────────────
+
+if command -v python3 >/dev/null 2>&1; then
+  echo "  Python detected: $(python3 --version 2>&1)"
+  echo "    Optional: pip install pypdf and/or Poppler pdftotext for /apply PDF verification"
+else
+  echo "  WARNING: Python 3.10+ not found. /rank, /apply, and /scrape helper tools will be limited."
+  echo "           Install Python: https://www.python.org/downloads/"
+fi
+
+# ─── Done ──────────────────────────────────────────────────────────────────
+
+if "${INSTALL_DIR}/${BIN_NAME}" --version >/dev/null 2>&1; then
+  echo "  OpenJob installed successfully:"
+  echo "    $("${INSTALL_DIR}/${BIN_NAME}" --version)"
+else
+  echo "  OpenJob installed, but the binary did not respond to --version."
+fi
+
+echo
+echo "Next steps:"
+if [[ -n "${WORKSPACE_DIR}" ]]; then
+  echo "  cd ${WORKSPACE_DIR} && openjob"
+else
+  echo "  openjob                 # run in any directory"
+  echo "  cp -r ${RUNTIME_DIR}/workspace ~/my-job-search && cd ~/my-job-search && openjob"
+  echo "                          # for a fresh, fully scaffolded job-search workspace"
+fi
