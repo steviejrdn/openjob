@@ -3,9 +3,9 @@
 // compact fallback below it otherwise.
 export const openjobAscii = [
   "▄▄▄▄ ▄▄▄▄ ▄▄▄▄ ▄▄▄  ▄▄▄▄ ▄▄▄▄ █▄▄▄",
-  "█  █ █  █ █  █ █  █    █ █  █ █  █",
-  "█  █ █  █ █▀▀▀ █  █ ▄  █ █  █ █  █",
-  "▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▄▄▀ ▀▀▀▀ ▀▀▀▀",
+  "█  █ █  █ █▄▄█ █  █    █ █  █ █  █",
+  "█▄▄█ █▄▄█ █▄▄▄ █  █ ▄  █ █▄▄█ █▄▄█",
+  "     ▀               ▀▀           ",
 ] as const
 
 // Compact rail mark (OJB) for narrow terminals and future sidebars.

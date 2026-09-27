@@ -3,9 +3,9 @@ import { Schema } from "effect"
 
 const wordmark = [
   `▄▄▄▄ ▄▄▄▄ ▄▄▄▄ ▄▄▄  ▄▄▄▄ ▄▄▄▄ █▄▄▄`,
-  `█  █ █  █ █  █ █  █    █ █  █ █  █`,
-  `█  █ █  █ █▀▀▀ █  █ ▄  █ █  █ █  █`,
-  `▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▄▄▀ ▀▀▀▀ ▀▀▀▀`,
+  `█  █ █  █ █▄▄█ █  █    █ █  █ █  █`,
+  `█▄▄█ █▄▄█ █▄▄▄ █  █ ▄  █ █▄▄█ █▄▄█`,
+  `     ▀               ▀▀           `,
 ]
 
 export class CancelledError extends Schema.TaggedErrorClass<CancelledError>()("UICancelledError", {}) {}

@@ -46,6 +46,11 @@ Upstream docs and infrastructure that would confuse the product surface:
 - Project config stays enabled (`openjob.json`, `.openjob/`) unlike Ocarina's
   stricter isolation, because a job-search workspace is project-scoped.
 - Auto-share is forced off.
-- TUI plugin loading is disabled (`OPENCODE_PURE` defaults to true) and the
-  built-in command palette/slash surface is trimmed via
+- External plugins are never loaded: the `openjob plugin` command is removed
+  from the CLI (`index.ts`), `OPENCODE_PURE` is forced on for every code path
+  (CLI, TUI worker, server), and the `@opencode-ai/plugin` authoring dependency
+  is no longer auto-installed into config directories (`config.ts`). The
+  upstream `cli/cmd/plug.ts` file stays in place for its tests but is not
+  registered.
+- The built-in command palette/slash surface is trimmed via
   `packages/tui/src/prompt/commands.ts`.
