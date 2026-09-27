@@ -84,6 +84,24 @@ OPENJOB_VERSION=0.1.0 bash <(curl -fsSL https://raw.githubusercontent.com/stevie
 The installer places the binary on your `PATH` and extracts the workspace
 template to `~/.local/share/openjob/workspace`.
 
+### Updating
+
+OpenJob never self-updates. When a newer release exists, the TUI shows a toast
+(`OpenJob vX available — run: openjob update`) and updating is one command:
+
+```bash
+openjob update          # download the latest release and refresh the host
+openjob update --check  # only compare the current and latest version
+openjob update 0.1.1    # pin a specific version
+```
+
+`openjob update` re-runs the official installer (SHA-256 verified), refreshes
+the host workspace (`.agents`, `tools`, `fonts`, `scaffold`) and refreshes the
+framework copy of every existing user (`users/<name>/.openjob`) while leaving
+personal files (profile, CV, documents, tracker) untouched. Each refresh keeps
+a backup at `users/<name>/.openjob.bak-<version>`; pass `--no-framework` to
+skip it. Set `OPENJOB_DISABLE_UPDATE_CHECK=1` to silence the startup check.
+
 ## Usage
 
 ```bash
@@ -110,6 +128,10 @@ openjob
 #   /users  → Add user…  → your name   (creates users/<name>/)
 #   /setup  → build your profile
 ```
+
+Until the first user exists, the host home screen shows a "No workspace yet —
+run /users to create one" hint, and the agent is the built-in Build agent. It
+switches to the OpenJob agent once you are inside a user workspace.
 
 From an installed release, run `openjob` in the extracted workspace template
 (`~/.local/share/openjob/workspace`) and create a user the same way.

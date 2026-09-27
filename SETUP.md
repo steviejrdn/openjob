@@ -274,6 +274,9 @@ Configuration comes from the host's `openjob.json` plus your workspace's
 `.openjob/` framework copy. The host gitignores `users/`, so personal data is
 never committed to the host repository.
 
+Update OpenJob with `openjob update` (see the README's "Updating" section);
+per-user framework files are refreshed while personal data stays untouched.
+
 ## Troubleshooting
 
 ### "salary_data.json not found"

@@ -32,6 +32,7 @@ Upstream docs and infrastructure that would confuse the product surface:
 | CLI strings | `packages/opencode/src/cli/cmd/{attach,pr,run,providers,mcp,agent,debug/index,run/permission.shared,run/trace,run/variant.shared,upgrade}.ts` |
 | Misc path rename | `packages/opencode/src/agent/agent.ts`, `packages/opencode/src/session/session.ts`, `packages/opencode/src/skill/index.ts`, `packages/opencode/src/plugin/install.ts`, `packages/opencode/src/plugin/tui/runtime.ts`, `packages/opencode/src/installation/index.ts` |
 | Build | `packages/opencode/script/build.ts` |
+| Dependency pin | `packages/app/package.json` (`ghostty-web` resolved from npm instead of the upstream GitHub commit that disappeared) |
 | npm wrapper | `packages/opencode/bin/openjob` (new), `packages/opencode/package.json` |
 | TUI identity | `packages/tui/src/branding.ts` (new), `packages/tui/src/logo.ts`, `packages/tui/src/component/logo.tsx`, `packages/tui/src/routes/home.tsx`, `packages/tui/src/app.tsx` |
 | TUI command surface | `packages/tui/src/prompt/commands.ts` (new), `packages/tui/src/component/prompt/{index,autocomplete}.tsx`, `packages/tui/src/routes/session/index.tsx`, `packages/tui/src/config/keybind.ts` |
@@ -41,8 +42,11 @@ Upstream docs and infrastructure that would confuse the product surface:
 
 ## Intentional behavior differences
 
-- `OPENCODE_DISABLE_AUTOUPDATE` is forced on; `openjob upgrade` points at the
-  OpenJob installer instead of self-updating.
+- `OPENCODE_DISABLE_AUTOUPDATE` is forced on; `openjob update` re-runs the
+  official installer instead of self-updating. The TUI performs a once-a-day,
+  notification-only version check against the OpenJob GitHub releases
+  (`installation/openjob-update.ts`, toast in `app.tsx`, wired through
+  `cli/tui/worker.ts`); `OPENJOB_DISABLE_UPDATE_CHECK=1` turns it off.
 - All inherited `OPENCODE_*` env vars are stripped at startup; `HOME` and
   `XDG_*` point into the OpenJob runtime.
 - Project config stays enabled (`openjob.json`, `.openjob/`) unlike Ocarina's

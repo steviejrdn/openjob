@@ -116,6 +116,9 @@ export const Flag = {
     const value = process.env["OPENJOB_RUNTIME_DIR"]
     return value ? path.resolve(value) : undefined
   },
+  get OPENJOB_DISABLE_UPDATE_CHECK() {
+    return truthy("OPENJOB_DISABLE_UPDATE_CHECK")
+  },
   get OPENCODE_PURE() {
     // Self-contained by default: external TUI plugins stay off unless a test
     // or embedder opts in explicitly after startup.

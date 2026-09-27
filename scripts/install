@@ -230,10 +230,15 @@ WORKSPACE_EXTRACT="${TMP_DIR}/workspace"
 mkdir -p "${WORKSPACE_EXTRACT}"
 if download "${DOWNLOAD_BASE}/openjob-workspace.tar.gz" "${TMP_DIR}/openjob-workspace.tar.gz" 2>/dev/null; then
   tar -xzf "${TMP_DIR}/openjob-workspace.tar.gz" -C "${WORKSPACE_EXTRACT}"
-  rm -rf "${RUNTIME_DIR}/workspace"
   mkdir -p "${RUNTIME_DIR}/workspace"
+  # Refresh only host-owned entries and never touch users/: each users/<name>/
+  # directory holds a person's profile, CVs, documents and application history.
+  for entry in .agents tools fonts scaffold; do
+    rm -rf "${RUNTIME_DIR}/workspace/${entry}"
+  done
+  rm -f "${RUNTIME_DIR}/workspace/openjob.json" "${RUNTIME_DIR}/workspace/SECURITY.md"
   cp -r "${WORKSPACE_EXTRACT}/." "${RUNTIME_DIR}/workspace/"
-  echo "  Workspace template installed to ${RUNTIME_DIR}/workspace"
+  echo "  Workspace template installed to ${RUNTIME_DIR}/workspace (existing users preserved)"
 
   if [[ -n "${WORKSPACE_DIR}" ]]; then
     mkdir -p "${WORKSPACE_DIR}"

@@ -56,9 +56,11 @@ openjob
 # inside the TUI: /users → Add user… → your name
 ```
 
-The TUI switches into `users/<name>/`; everything below runs there. From an
-installed release, run `openjob` in `~/.local/share/openjob/workspace` and
-create a user the same way.
+The TUI switches into `users/<name>/`; everything below runs there. Until the
+first user exists, the host home screen shows a "No workspace yet — run /users
+to create one" hint and the built-in Build agent; inside a user workspace the
+agent is OpenJob. From an installed release, run `openjob` in
+`~/.local/share/openjob/workspace` and create a user the same way.
 
 > [!IMPORTANT]
 > `/setup` (step 3 below) writes your personal data (name, contact details, employment history, salary expectations) into `users/<name>/`, which the host repository gitignores. Keep any personal files you add outside `users/` private, and never push them to a public remote.
@@ -138,6 +140,23 @@ added with `/add-portal` are therefore visible to every user.
 - A bare `openjob` starts in the active user's directory.
 - `openjob users/<name>` opens a specific user directly.
 - The whole `users/` directory is gitignored; nothing personal is committable.
+
+## Updating
+
+OpenJob never self-updates. The TUI shows a toast when a newer release is
+available; update with:
+
+```bash
+openjob update
+```
+
+This re-runs the installer (new binary + refreshed host workspace) and then
+refreshes the framework-owned files inside every existing user workspace
+(`commands/`, `agents/`, generic skill files, `openjob.json`,
+`salary_lookup.py`) without touching personal data — profile files, CVs,
+documents, and the tracker stay as they are. A backup of each `.openjob` is
+kept as `.openjob.bak-<version>`. Use `openjob update --check` to only check the
+version, or `--no-framework` to skip the per-user refresh.
 
 ## Other commands
 

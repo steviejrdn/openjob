@@ -80,10 +80,15 @@ try {
     New-Item -ItemType Directory -Path $wsExtract -Force | Out-Null
     tar -xzf $wsZip -C $wsExtract
     $wsTarget = Join-Path $RuntimeDir "workspace"
-    if (Test-Path $wsTarget) { Remove-Item $wsTarget -Recurse -Force }
     New-Item -ItemType Directory -Path $wsTarget -Force | Out-Null
+    # Refresh only host-owned entries and never touch users/: each users/<name>/
+    # directory holds a person's profile, CVs, documents and application history.
+    foreach ($entry in @(".agents", "tools", "fonts", "scaffold", "openjob.json", "SECURITY.md")) {
+      $path = Join-Path $wsTarget $entry
+      if (Test-Path $path) { Remove-Item $path -Recurse -Force }
+    }
     Copy-Item (Join-Path $wsExtract "*") $wsTarget -Recurse -Force
-    Write-Host "  Workspace template installed to $wsTarget"
+    Write-Host "  Workspace template installed to $wsTarget (existing users preserved)"
     if ($WorkspaceDir) {
       New-Item -ItemType Directory -Path $WorkspaceDir -Force | Out-Null
       Copy-Item (Join-Path $wsExtract "*") $WorkspaceDir -Recurse -Force

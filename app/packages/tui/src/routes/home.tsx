@@ -1,5 +1,7 @@
 import { Prompt, type PromptRef } from "../component/prompt"
-import { createEffect, createMemo, createSignal, onMount } from "solid-js"
+import { createEffect, createMemo, createSignal, onMount, Show } from "solid-js"
+import { existsSync } from "node:fs"
+import path from "node:path"
 import { Logo } from "../component/logo"
 import { useSync } from "../context/sync"
 import { Toast } from "../ui/toast"
@@ -11,6 +13,10 @@ import { usePluginRuntime } from "../plugin/runtime"
 import { useEditorContext } from "../context/editor"
 import { useTerminalDimensions } from "@opentui/solid"
 import { useTuiConfig } from "../config"
+import { useProject } from "../context/project"
+import { useTuiPaths } from "../context/runtime"
+import { useTheme } from "../context/theme"
+import { listUsers, usersRoot } from "../util/users"
 import { HomeSessionDestinationProvider } from "./home/session-destination"
 
 let once = false
@@ -34,6 +40,16 @@ export function Home() {
   const editor = useEditorContext()
   const dimensions = useTerminalDimensions()
   const tuiConfig = useTuiConfig()
+  const project = useProject()
+  const paths = useTuiPaths()
+  const { theme } = useTheme()
+  // A host directory with no users yet: show how to create the first
+  // workspace. Inside a user directory `.openjob` exists, so this stays hidden.
+  const needsUser = (() => {
+    if (existsSync(path.join(paths.cwd, ".openjob"))) return false
+    const root = usersRoot(project.instance.path().worktree, project.instance.directory() || paths.cwd)
+    return listUsers(root).length === 0
+  })()
   const promptMaxWidth = createMemo(() => {
     const configured = tuiConfig.prompt?.max_width
     if (configured === "auto") return Math.max(75, Math.floor(dimensions().width * 0.7))
@@ -81,6 +97,11 @@ export function Home() {
             <Logo />
           </pluginRuntime.Slot>
         </box>
+        <Show when={needsUser}>
+          <text fg={theme.textMuted} marginTop={1}>
+            No workspace yet — run <span style={{ fg: theme.primary }}>/users</span> to create one
+          </text>
+        </Show>
         <box height={1} minHeight={0} flexShrink={1} />
         <box width="100%" maxWidth={promptMaxWidth()} zIndex={1000} paddingTop={1} flexShrink={0}>
           <pluginRuntime.Slot name="home_prompt" mode="replace" ref={bind}>

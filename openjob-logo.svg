@@ -8,7 +8,13 @@
    xml:space="preserve"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg"><defs
-     id="defs69" /><g
+     id="defs69" /><rect
+     style="font-weight:400;font-size:14px;font-family:SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;fill:#0d1117;fill-opacity:1;stroke-width:0.998457"
+     id="rect69"
+     width="285.59998"
+     height="68.400002"
+     x="0"
+     y="0" /><g
      id="g69"
      transform="matrix(0.93530422,0,0,0.93530422,9.2387428,6.347299)"><path
        id="text1"
