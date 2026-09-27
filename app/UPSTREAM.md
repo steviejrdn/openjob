@@ -37,6 +37,7 @@ Upstream docs and infrastructure that would confuse the product surface:
 | TUI identity | `packages/tui/src/branding.ts` (new), `packages/tui/src/logo.ts`, `packages/tui/src/component/logo.tsx`, `packages/tui/src/routes/home.tsx`, `packages/tui/src/app.tsx` |
 | TUI command surface | `packages/tui/src/prompt/commands.ts` (new), `packages/tui/src/component/prompt/{index,autocomplete}.tsx`, `packages/tui/src/routes/session/index.tsx`, `packages/tui/src/config/keybind.ts` |
 | Built-in TUI plugins | `packages/tui/src/feature-plugins/builtins.ts` (plugin manager removed), `packages/tui/src/component/startup-loading.tsx` |
+| TUI sidebar removed | `packages/tui/src/routes/session/sidebar.tsx` (removed), `packages/tui/src/feature-plugins/sidebar/*` (removed) |
 | Multi-user | `packages/tui/src/util/users.ts` (new), `packages/tui/src/component/dialog-users.tsx` (new), `packages/opencode/src/cli/cmd/tui.ts` (reopen loop + `users/.active`) |
 | TUI strings | `packages/tui/src/attention.ts`, `packages/tui/src/component/{dialog-provider,dialog-status,error-component}.tsx`, `packages/tui/src/context/theme.tsx`, `packages/tui/src/feature-plugins/home/tips-view.tsx`, `packages/tui/src/util/error.ts` |
 
@@ -63,6 +64,11 @@ Upstream docs and infrastructure that would confuse the product surface:
   is no longer auto-installed into config directories (`config.ts`). The
   upstream `cli/cmd/plug.ts` file stays in place for its tests but is not
   registered.
+- The TUI session sidebar is removed entirely: it never renders (no auto sidebar
+  on wide terminals), the `session.sidebar.toggle` command and `<leader>b`
+  keybind are gone, and session content always uses the full terminal width.
+  Its built-in plugins (`context`, `mcp`, `lsp`, `todo`, `files`, `footer`) are
+  undeclared and deleted; the `sidebar_*` plugin slots stay in the plugin API.
 - The built-in TUI plugin manager is removed
   (`packages/tui/src/feature-plugins/builtins.ts`), so the palette has no
   "Plugins" / "Install plugin" entries. The `feature-plugins/system/plugins.tsx`

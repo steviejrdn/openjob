@@ -36,7 +36,6 @@ type Shortcuts = {
   sessionPinToggle: TipShortcut
   sessionQuickSwitch1: TipShortcut
   sessionQuickSwitch9: TipShortcut
-  sessionSidebarToggle: TipShortcut
   sessionTimeline: TipShortcut
   statusView: TipShortcut
   terminalSuspend: TipShortcut
@@ -126,7 +125,6 @@ export function Tips(props: { api: TuiPluginApi; connected?: boolean }) {
     sessionPinToggle: configShortcut(props.api, "session.pin.toggle"),
     sessionQuickSwitch1: useCommandShortcut("session.quick_switch.1"),
     sessionQuickSwitch9: useCommandShortcut("session.quick_switch.9"),
-    sessionSidebarToggle: configShortcut(props.api, "session.sidebar.toggle"),
     sessionTimeline: configShortcut(props.api, "session.timeline"),
     statusView: useCommandShortcut("opencode.status"),
     terminalSuspend: useCommandShortcut("terminal.suspend"),
