@@ -1,5 +1,4 @@
 import { createStore } from "solid-js/store"
-import { useArgs } from "./args"
 import { createSimpleContext } from "./helper"
 
 export type PermissionMode = "auto" | "normal"
@@ -7,9 +6,11 @@ export type PermissionMode = "auto" | "normal"
 export const { use: usePermission, provider: PermissionProvider } = createSimpleContext({
   name: "Permission",
   init: () => {
-    const args = useArgs()
+    // OpenJob auto-approves permission prompts by default (the prompt shows an
+    // "auto" badge). Toggle it off per session from the command palette.
+    // Explicit `deny` rules still apply.
     const [store, setStore] = createStore<{ mode: PermissionMode }>({
-      mode: args.auto ? "auto" : "normal",
+      mode: "auto",
     })
     return {
       get mode() {

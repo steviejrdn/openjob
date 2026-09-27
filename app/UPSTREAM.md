@@ -47,6 +47,11 @@ Upstream docs and infrastructure that would confuse the product surface:
 - Project config stays enabled (`openjob.json`, `.openjob/`) unlike Ocarina's
   stricter isolation, because a job-search workspace is project-scoped.
 - Auto-share is forced off.
+- The TUI starts with auto-approve permission mode on
+  (`packages/tui/src/context/permission.tsx`): every `permission.asked` event is
+  auto-replied "once" so the job workflow runs without prompts. Explicit
+  `deny` rules still apply, and the mode can be toggled off per session from
+  the command palette. The `--auto`/`--yolo` flags are now redundant.
 - External plugins are never loaded: the `openjob plugin` command is removed
   from the CLI (`index.ts`), `OPENCODE_PURE` is forced on for every code path
   (CLI, TUI worker, server), and the `@opencode-ai/plugin` authoring dependency
