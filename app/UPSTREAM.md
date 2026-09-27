@@ -35,6 +35,7 @@ Upstream docs and infrastructure that would confuse the product surface:
 | npm wrapper | `packages/opencode/bin/openjob` (new), `packages/opencode/package.json` |
 | TUI identity | `packages/tui/src/branding.ts` (new), `packages/tui/src/logo.ts`, `packages/tui/src/component/logo.tsx`, `packages/tui/src/routes/home.tsx`, `packages/tui/src/app.tsx` |
 | TUI command surface | `packages/tui/src/prompt/commands.ts` (new), `packages/tui/src/component/prompt/{index,autocomplete}.tsx`, `packages/tui/src/routes/session/index.tsx`, `packages/tui/src/config/keybind.ts` |
+| Built-in TUI plugins | `packages/tui/src/feature-plugins/builtins.ts` (plugin manager removed), `packages/tui/src/component/startup-loading.tsx` |
 | TUI strings | `packages/tui/src/attention.ts`, `packages/tui/src/component/{dialog-provider,dialog-status,error-component}.tsx`, `packages/tui/src/context/theme.tsx`, `packages/tui/src/feature-plugins/home/tips-view.tsx`, `packages/tui/src/util/error.ts` |
 
 ## Intentional behavior differences
@@ -52,5 +53,11 @@ Upstream docs and infrastructure that would confuse the product surface:
   is no longer auto-installed into config directories (`config.ts`). The
   upstream `cli/cmd/plug.ts` file stays in place for its tests but is not
   registered.
+- The built-in TUI plugin manager is removed
+  (`packages/tui/src/feature-plugins/builtins.ts`), so the palette has no
+  "Plugins" / "Install plugin" entries. The `feature-plugins/system/plugins.tsx`
+  file stays unused, the `/status` dialog no longer shows a Plugins section
+  (`component/dialog-status.tsx`), and the startup label reads "Loading
+  workspace…" (`component/startup-loading.tsx`).
 - The built-in command palette/slash surface is trimmed via
   `packages/tui/src/prompt/commands.ts`.

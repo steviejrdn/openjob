@@ -231,10 +231,6 @@ test("loads disabled-by-default internal plugin inactive and activates on demand
   try {
     await TuiPluginRuntime.init({ api, config })
 
-    expect(TuiPluginRuntime.list().find((item) => item.id === "internal:plugin-manager")).toMatchObject({
-      enabled: true,
-      active: true,
-    })
     expect(TuiPluginRuntime.list().find((item) => item.id === "which-key")).toEqual({
       id: "which-key",
       source: "internal",
