@@ -36,6 +36,7 @@ Upstream docs and infrastructure that would confuse the product surface:
 | TUI identity | `packages/tui/src/branding.ts` (new), `packages/tui/src/logo.ts`, `packages/tui/src/component/logo.tsx`, `packages/tui/src/routes/home.tsx`, `packages/tui/src/app.tsx` |
 | TUI command surface | `packages/tui/src/prompt/commands.ts` (new), `packages/tui/src/component/prompt/{index,autocomplete}.tsx`, `packages/tui/src/routes/session/index.tsx`, `packages/tui/src/config/keybind.ts` |
 | Built-in TUI plugins | `packages/tui/src/feature-plugins/builtins.ts` (plugin manager removed), `packages/tui/src/component/startup-loading.tsx` |
+| Multi-user | `packages/tui/src/util/users.ts` (new), `packages/tui/src/component/dialog-users.tsx` (new), `packages/opencode/src/cli/cmd/tui.ts` (reopen loop + `users/.active`) |
 | TUI strings | `packages/tui/src/attention.ts`, `packages/tui/src/component/{dialog-provider,dialog-status,error-component}.tsx`, `packages/tui/src/context/theme.tsx`, `packages/tui/src/feature-plugins/home/tips-view.tsx`, `packages/tui/src/util/error.ts` |
 
 ## Intentional behavior differences
@@ -64,5 +65,11 @@ Upstream docs and infrastructure that would confuse the product surface:
   file stays unused, the `/status` dialog no longer shows a Plugins section
   (`component/dialog-status.tsx`), and the startup label reads "Loading
   workspace…" (`component/startup-loading.tsx`).
+- The TUI supports multi-user workspaces: `users/<name>/` directories, a
+  native `/users` command (list, switch, create), and a process re-exec in
+  `cli/cmd/tui.ts` when a command returns `reason.type === "reopen"` (restarting
+  the TUI in another directory; rebuilding the renderer in place crashes Bun).
+  `resolveThreadDirectory` honors `users/.active` for bare launches. Per-user
+  data is gitignored.
 - The built-in command palette/slash surface is trimmed via
   `packages/tui/src/prompt/commands.ts`.

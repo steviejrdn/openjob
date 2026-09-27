@@ -118,6 +118,21 @@ openjob
 Personal data (profile, CVs, tracker, application archive) is gitignored and
 never leaves your machine.
 
+### Multiple users
+
+OpenJob can host several candidates in one workspace. Each user gets a
+`users/<name>/` directory with their own profile, CV, documents, and tracker,
+while the framework (commands, skills, tools) stays shared at the repository
+root.
+
+- `/users` inside the TUI lists users, switches to another one (the TUI
+  relaunches in that user's directory), and creates a new user.
+- `openjob users/<name>` starts directly in that user's workspace.
+- A bare `openjob` starts in the active user's directory (`users/.active`,
+  updated every time you switch or create a user).
+
+Per-user data is gitignored, so the repository stays safe to publish.
+
 ## How it works
 
 - `openjob` routes work to specialized subagents: `job-application-assistant`

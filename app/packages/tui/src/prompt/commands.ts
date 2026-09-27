@@ -23,6 +23,8 @@ export const OPENJOB_SLASH_ALLOWLIST = new Set([
   "continue",
   "themes",
   "theme",
+  "users",
+  "user",
   "exit",
   "quit",
   "q",

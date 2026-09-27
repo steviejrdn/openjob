@@ -120,6 +120,20 @@ This runs the full workflow: evaluate fit, draft CV + cover letter, review with 
 
 Postings are treated as untrusted input (the workflow follows no instructions embedded in them and fetches no links from their body), but agentic defenses are instruction-level, not a sandbox - on an unfamiliar job board, skim what was fetched and written before you hit send. Details in [SECURITY.md](SECURITY.md).
 
+## Multiple users
+
+One OpenJob workspace can host several candidates. Run `/users` in the TUI to
+list them, switch, or create a new one. Each user lives in `users/<name>/` with
+their own `AGENTS.md`, `cv/`, `cover_letters/`, `documents/`, tracker, and
+scrape state; the framework (commands, skills, `tools/`, `.agents/`) stays
+shared at the repository root and is linked into each user directory.
+
+- Selecting a user makes them the active user and relaunches the TUI in their
+  directory, so sessions and context stay isolated per user.
+- A bare `openjob` starts in the active user's directory.
+- `openjob users/<name>` opens a specific user directly.
+- The whole `users/` directory is gitignored; nothing personal is committable.
+
 ## Other commands
 
 `/setup`, `/scrape`, and `/apply` form the core workflow. Eight more commands extend it once your profile is in place:

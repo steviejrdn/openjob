@@ -2,6 +2,7 @@ import { cmd } from "@/cli/cmd/cmd"
 import { Rpc } from "@/util/rpc"
 import { type rpc } from "../tui/worker"
 import path from "path"
+import { existsSync, readFileSync } from "fs"
 import { fileURLToPath } from "url"
 import { UI } from "@/cli/ui"
 import { errorMessage } from "@opencode-ai/tui/util/error"
@@ -70,7 +71,46 @@ export function resolveThreadDirectory(
 ) {
   const root = Filesystem.resolve(envPWD ?? cwd)
   if (project) return Filesystem.resolve(path.isAbsolute(project) ? project : path.join(root, project))
-  return Filesystem.resolve(envPWD ?? cwd)
+  // OpenJob multi-user: a bare launch inside a workspace starts in the active
+  // user's directory (set from the /users dialog).
+  return activeUserDirectory(root) ?? Filesystem.resolve(envPWD ?? cwd)
+}
+
+function activeUserDirectory(root: string): string | undefined {
+  try {
+    const name = readFileSync(path.join(root, "users", ".active"), "utf8").trim()
+    if (!name) return undefined
+    const directory = path.join(root, "users", name)
+    return existsSync(directory) ? directory : undefined
+  } catch {
+    return undefined
+  }
+}
+
+// In dev the CLI runs as `bun <entry.ts>`; in a compiled binary argv[1] is a
+// user argument, so only forward the entry script when running from source.
+const devEntry =
+  typeof OPENCODE_WORKER_PATH === "undefined" && process.argv[1] ? path.resolve(process.argv[1]) : undefined
+// The relaunched process must keep the original working directory: in dev Bun
+// resolves the tsconfig/bunfig (JSX runtime, workspace deps) from it, and the
+// target workspace is passed as a positional path plus OPENJOB_PROJECT_DIR.
+const originalCwd = process.cwd()
+
+// A directory switch (e.g. /users) restarts the whole process instead of
+// rebuilding the renderer and worker in place: repeatedly creating the TUI
+// inside one process crashes Bun. The child inherits the terminal and the
+// parent mirrors its exit code.
+async function relaunch(directory: string): Promise<void> {
+  const entry = devEntry ? [devEntry] : []
+  process.on("SIGINT", () => {})
+  process.on("SIGTERM", () => {})
+  const child = Bun.spawn({
+    cmd: [process.execPath, ...entry, directory],
+    cwd: originalCwd,
+    env: { ...process.env, OPENJOB_PROJECT_DIR: directory },
+    stdio: ["inherit", "inherit", "inherit"],
+  })
+  process.exit(await child.exited)
 }
 
 export const TuiThreadCommand = cmd({
@@ -270,11 +310,12 @@ export const TuiThreadCommand = cmd({
         client.call("checkUpgrade", { directory: cwd }).catch(() => {})
       }, 1000).unref?.()
 
+      let result: { epilogue?: string; reason?: unknown } = {}
       try {
         const { Effect } = await import("effect")
         const { run } = await import("../tui/layer")
         const { createLegacyTuiPluginHost } = await import("@/plugin/tui/runtime")
-        await Effect.runPromise(
+        result = (await Effect.runPromise(
           run({
             url: transport.url,
             async onSnapshot() {
@@ -298,9 +339,15 @@ export const TuiThreadCommand = cmd({
               auto: args.auto || args.yolo || args["dangerously-skip-permissions"],
             },
           }),
-        )
+        )) as unknown as { epilogue?: string; reason?: unknown }
       } finally {
         await stop()
+      }
+
+      const reason = result.reason as { type?: string; directory?: string } | undefined
+      if (reason && typeof reason === "object" && reason.type === "reopen" && typeof reason.directory === "string") {
+        await relaunch(reason.directory)
+        return
       }
     } finally {
       try {

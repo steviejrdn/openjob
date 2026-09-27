@@ -119,3 +119,8 @@ company_research/*.json
 
 # Brainstorm mockups (superpowers visual companion) - never ship
 .superpowers/
+
+# Multi-user workspaces: each users/<name>/ directory holds personal data
+# (profile, CV, documents, tracker, applications) plus generated framework
+# links. Never commit any of it.
+users/

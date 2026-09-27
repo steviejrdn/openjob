@@ -51,6 +51,7 @@ import { DialogThemeList } from "./component/dialog-theme-list"
 import { DialogHelp } from "./ui/dialog-help"
 import { DialogAgent } from "./component/dialog-agent"
 import { DialogSessionList } from "./component/dialog-session-list"
+import { DialogUsers } from "./component/dialog-users"
 import { DialogWorkspaceList } from "./component/dialog-workspace-list"
 import { DialogConsoleOrg } from "./component/dialog-console-org"
 import { ThemeProvider, useTheme } from "./context/theme"
@@ -359,12 +360,18 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
   )
   yield* Effect.sync(() => {
     win32FlushInputBuffer()
-    if (result.reason !== undefined) {
+    const reason = result.reason as { type?: string } | undefined
+    // A "reopen" reason is a directory switch requested by a command (e.g.
+    // /users), not an error: keep the process alive and let the CLI restart
+    // the TUI in the requested directory.
+    const reopening = reason !== undefined && typeof reason === "object" && reason.type === "reopen"
+    if (result.reason !== undefined && !reopening) {
       process.stderr.write((cliErrorMessage(result.reason) ?? errorFormat(result.reason)) + "\n")
       process.exitCode = 1
     }
-    if (result.epilogue) process.stdout.write(result.epilogue + "\n")
+    if (result.epilogue && !reopening) process.stdout.write(result.epilogue + "\n")
   })
+  return result
 })
 
 function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPluginHost }) {
@@ -946,6 +953,16 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
           kv.set("session_directory_filter_enabled", !kv.get("session_directory_filter_enabled", true))
           await sync.session.refresh()
           dialog.clear()
+        },
+      },
+      {
+        name: "users.list",
+        title: "Users",
+        category: "System",
+        slashName: "users",
+        slashAliases: ["user"],
+        run: () => {
+          dialog.replace(() => <DialogUsers />)
         },
       },
       {
