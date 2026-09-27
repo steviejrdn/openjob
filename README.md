@@ -134,10 +134,11 @@ run /users to create one" hint, and the agent is the built-in Build agent. It
 switches to the OpenJob agent once you are inside a user workspace.
 
 With the installed binary you do not need to `cd` anywhere: running `openjob`
-from any directory opens the installed host at **`~/OpenJob`**, so `/users`
-always shows the same list. Running `openjob` inside a user workspace keeps you
-in that user. Your documents live in `~/OpenJob/users/<name>/documents/` — open
-it any time from `/users` → **Open workspace folder**.
+from any directory — including inside a user workspace — opens the installed
+host at **`~/OpenJob`**, so `/users` always shows the same list. Use `/users`
+to switch into a user workspace. Your documents live in
+`~/OpenJob/users/<name>/documents/` — open it any time from `/users` →
+**Open workspace folder**.
 
 From an installed release, run `openjob` from anywhere (it opens `~/OpenJob`)
 and create a user the same way.
@@ -157,8 +158,9 @@ user.
 - `/users` inside the TUI lists users, switches to another one (the TUI
   relaunches in that user's directory), and creates a new user.
 - `openjob users/<name>` starts directly in that user's workspace.
-- A bare `openjob` starts in the active user's directory (`users/.active`,
-  updated every time you switch or create a user).
+- A bare `openjob` always opens the host root (`~/OpenJob`), never the active
+  user automatically; `users/.active` only marks the last user for the
+  `/users` dialog.
 
 Per-user data is gitignored, so the repository stays safe to publish.
 

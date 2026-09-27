@@ -145,8 +145,10 @@ CLIs) and `fonts/` are shared from the host through symlinks — portal skills
 added with `/add-portal` are therefore visible to every user.
 
 - Selecting a user makes them the active user and relaunches the TUI in their
-  directory, so sessions and context stay isolated per user.
-- A bare `openjob` starts in the active user's directory.
+  directory, so sessions and context stay isolated per user. The active marker
+  only remembers the last user for the `/users` dialog.
+- A bare `openjob` always starts at the host root (`~/OpenJob`), never in the
+  active user's workspace; use `/users` to switch into a user.
 - `openjob users/<name>` opens a specific user directly.
 - The whole `users/` directory is gitignored; nothing personal is committable.
 

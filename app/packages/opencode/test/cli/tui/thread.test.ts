@@ -23,7 +23,12 @@ describe("tui thread", () => {
   })
 
   async function check(project?: string) {
-    await using tmp = await tmpdir({ git: true })
+    await using tmp = await tmpdir({
+      git: true,
+      init: async (dir) => {
+        await fs.mkdir(path.join(dir, "scaffold", "openjob"), { recursive: true })
+      },
+    })
     const link = path.join(path.dirname(tmp.path), path.basename(tmp.path) + "-link")
     const type = process.platform === "win32" ? "junction" : "dir"
 
@@ -45,10 +50,52 @@ describe("tui thread", () => {
 
   test("resolves a relative mini project from PWD when cwd differs", async () => {
     await using pwd = await tmpdir({ git: true })
-    await using cwd = await tmpdir({ git: true })
+    await using cwd = await tmpdir({
+      git: true,
+      init: async (dir) => {
+        await fs.mkdir(path.join(dir, "scaffold", "openjob"), { recursive: true })
+      },
+    })
 
     expect(resolveThreadDirectory(".", pwd.path, cwd.path)).toBe(pwd.path)
     expect(resolveThreadDirectory(undefined, pwd.path, cwd.path)).toBe(cwd.path)
+  })
+
+  test("bare launches resolve to the host root, never the active user", async () => {
+    await using tmp = await tmpdir({
+      init: async (dir) => {
+        await fs.mkdir(path.join(dir, "scaffold", "openjob"), { recursive: true })
+        await fs.mkdir(path.join(dir, "users", "salma", ".openjob"), { recursive: true })
+        await fs.writeFile(path.join(dir, "users", ".active"), "salma\n")
+      },
+    })
+
+    expect(resolveThreadDirectory(undefined, tmp.path, tmp.path)).toBe(tmp.path)
+  })
+
+  test("a launch inside a user workspace resolves to the host root", async () => {
+    await using tmp = await tmpdir({
+      init: async (dir) => {
+        await fs.mkdir(path.join(dir, "scaffold", "openjob"), { recursive: true })
+        await fs.mkdir(path.join(dir, "users", "salma", ".openjob"), { recursive: true })
+      },
+    })
+    const user = path.join(tmp.path, "users", "salma")
+
+    expect(resolveThreadDirectory(undefined, user, user)).toBe(tmp.path)
+  })
+
+  test("an explicit project still opens the given directory", async () => {
+    await using tmp = await tmpdir({
+      init: async (dir) => {
+        await fs.mkdir(path.join(dir, "scaffold", "openjob"), { recursive: true })
+        await fs.mkdir(path.join(dir, "users", "salma", ".openjob"), { recursive: true })
+      },
+    })
+    const user = path.join(tmp.path, "users", "salma")
+
+    expect(resolveThreadDirectory(path.join("users", "salma"), tmp.path, tmp.path)).toBe(user)
+    expect(resolveThreadDirectory(user, tmp.path, tmp.path)).toBe(user)
   })
 
   test("parses supported --no-replay forms", async () => {

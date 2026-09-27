@@ -2,7 +2,7 @@ import { cmd } from "@/cli/cmd/cmd"
 import { Rpc } from "@/util/rpc"
 import { type rpc } from "../tui/worker"
 import path from "path"
-import { existsSync, readFileSync } from "fs"
+import { existsSync } from "fs"
 import { fileURLToPath } from "url"
 import { UI } from "@/cli/ui"
 import { errorMessage } from "@opencode-ai/tui/util/error"
@@ -72,23 +72,27 @@ export function resolveThreadDirectory(
 ) {
   const root = Filesystem.resolve(envPWD ?? cwd)
   if (project) return Filesystem.resolve(path.isAbsolute(project) ? project : path.join(root, project))
-  // A launch inside an OpenJob host (or a user workspace) stays there; any
-  // other directory falls back to the installed host workspace so `openjob`
-  // never creates a stray host in an arbitrary directory. A bare launch then
-  // starts in the active user's directory (set from the /users dialog).
-  const host = isHostDirectory(root) ? root : (hostDirectory() ?? root)
-  return activeUserDirectory(host) ?? host
+  // A bare launch always lands on the host root: OpenJob never auto-enters the
+  // active user workspace (`users/.active`); use /users to switch. The launch
+  // directory (`OPENJOB_PROJECT_DIR`/`PWD`, then the real cwd) is used when it
+  // is a host, and any other directory falls back to the installed host
+  // workspace so `openjob` never creates a stray host in an arbitrary
+  // directory. An explicit project path above still opens that directory
+  // directly.
+  const current = Filesystem.resolve(cwd)
+  const launch = [root, current].find((directory) => isHostDirectory(directory))
+  if (launch) return userWorkspaceHost(launch) ?? launch
+  return hostDirectory() ?? current
 }
 
-function activeUserDirectory(root: string): string | undefined {
-  try {
-    const name = readFileSync(path.join(root, "users", ".active"), "utf8").trim()
-    if (!name) return undefined
-    const directory = path.join(root, "users", name)
-    return existsSync(directory) ? directory : undefined
-  } catch {
-    return undefined
-  }
+function userWorkspaceHost(directory: string): string | undefined {
+  // `users/<name>` carries `.openjob` just like a host, so climb to the parent
+  // host instead of staying in (or descending into) a user workspace.
+  if (!existsSync(path.join(directory, ".openjob"))) return undefined
+  const users = path.dirname(directory)
+  if (path.basename(users) !== "users") return undefined
+  const host = path.dirname(users)
+  return isHostDirectory(host) ? host : undefined
 }
 
 // In dev the CLI runs as `bun <entry.ts>`; in a compiled binary argv[1] is a
