@@ -53,6 +53,14 @@ async function refreshUserFrameworks() {
     }
     const salary = path.join(workspace, "scaffold", "salary_lookup.py")
     if (existsSync(salary)) await cp(salary, path.join(users, name, "salary_lookup.py"), { force: true }).catch(() => {})
+    // documents/README.md is framework documentation, not personal data: refresh
+    // it so existing users learn about the generated postings documents.
+    const docsReadme = path.join(workspace, "scaffold", "documents", "README.md")
+    if (existsSync(docsReadme)) {
+      const to = path.join(users, name, "documents", "README.md")
+      await mkdir(path.dirname(to), { recursive: true })
+      await cp(docsReadme, to, { force: true }).catch(() => {})
+    }
     UI.println(`  Refreshed framework for ${name} (backup: .openjob.bak-${OpenJobVersion})`)
   }
 }

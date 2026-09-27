@@ -149,6 +149,12 @@ Update the matched row's `status` column using the canonical spellings from **Tr
 
 **Moving a row off `drafted`:** rows written by `/apply` Step 6b carry the date the documents were drafted, not the date they were sent. Whenever this step advances such a row to any other status - `applied`, or straight to `interview` or `rejected` when the user reports an outcome for something they submitted without recording it - overwrite its `date` column with the actual submission date. The `date` column drives `/html-report`'s year/season grouping and this command's own days-quiet count, so leaving the draft date in place would misreport the application.
 
+After the tracker write, refresh the workspace documents so the job's note and `documents/postings/job-list.md` show the new status:
+
+```bash
+python3 tools/job_docs.py sync
+```
+
 ---
 
 ## Step 5: Calibration Handoff

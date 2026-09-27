@@ -48,6 +48,7 @@ Dispatch parallel `general` subagents via the **task tool** (`subagent_type: "ge
 
 - Pass each agent everything it needs **inline in the prompt** - the job list (title, company, URL) and a compact scoring rubric extracted from the files you read in Step 1: the strong/moderate/weak skill match areas, direct/adjacent experience domains, behavioral thrive/drain factors, career goals, deal-breakers, and the location constraints. Do **not** make agents re-read the profile files.
 - Agents fetch each posting URL with webfetch and score **only from actually fetched content**. If a URL is dead, redirects to a listing page, or the posting has expired, the agent marks that job `expired` - it never scores from the title alone and never fabricates posting content.
+- **Persist the fetched posting text.** Create one scratch directory outside the repo tree for the run (e.g. `mktemp -d`) and give each agent its own file names inside it. For every posting it fetches, the agent writes one `.txt` file whose first line is `<!-- key: <the job's key in seen_jobs.json> -->` and whose remainder is the posting text verbatim. Agents must **not** return posting text in their JSON response - the snapshot files are what keep it out of this context. Step 4 ingests these files into the workspace documents.
 - **Before marking anything `expired`, the agent must exhaust the escalation order** in `.openjob/skills/job-application-assistant/09-web-research.md`: a `webfetch` 403 is a rejected *client*, not a missing page, and retrying with browser headers via curl recovers most corporate and bank domains. A stored URL ending in a `#fragment` points at a listing page rather than a posting, so the agent should search the employer's own careers site for the role by name before writing the job off. Include this instruction in every scoring agent's prompt. `expired` means "retrieval genuinely failed after retrying", not "the first fetch was unhelpful".
 - Scope is triage: posting text vs. rubric. **No company research, no salary lookup, no web searches** - that depth belongs to `/apply`.
 
@@ -129,6 +130,14 @@ Both arrays are stored **verbatim** as the agent returned them (1-3 bullets each
 
 `apply` prints back exactly the rows Step 5 needs - `ranked`, `vetoed`, `expired`, `errors` - so the report is written from its output and `seen_jobs.json` is never re-read to build it. A non-empty `errors` array (an unknown key, a missing score) exits non-zero: report those jobs as unscored rather than presenting a shortlist that quietly dropped them.
 
+Then render the workspace documents, ingesting the posting snapshots the agents wrote in Step 2:
+
+```bash
+python3 tools/job_docs.py sync --postings "<scratch directory>"
+```
+
+This updates `documents/postings/job-list.md` and the per-job notes under `documents/postings/jobs/` (posting text, score, strengths, gaps), so the shortlist survives this session and any later session can read it. Delete the scratch directory afterwards.
+
 Do not modify `job_search_tracker.csv` - that file records applications, and `/rank` never applies. Re-running `/rank` never re-scores an already-`ranked` job unless `--all` says so, so scoring is idempotent. **Rule 6's sweep is the deliberate exception and still runs**: it re-reads stored deadlines for exactly those skipped entries and may retire one to `expired`. That is not a re-score and costs no fetch, and skipping it because the entry was "already ranked" is what would leave a closed posting on the shortlist indefinitely.
 
 ---
@@ -172,6 +181,7 @@ Rules for the presentation:
 - A shortlisted job with `language_gate: FLAG` gets a ⚠ marker next to its Title (same treatment as a location FLAG) and its `language_note` quoted in that job's "Why these ranked highest" writeup, so the language-level gap is visible without digging into the raw JSON.
 - Every claim traces to fetched posting text or the profile - no invented details.
 - Say explicitly that these are **triage scores from the posting text only**, and that `/apply` will re-evaluate with company research before anything is drafted.
+- Mention that the shortlist is recorded in `documents/postings/job-list.md`, with one note per job under `documents/postings/jobs/`, so it stays readable in any later session.
 - Then ask: "Want to apply to any of these? Give me the number(s) and I'll start with the full `/apply` workflow."
 - If the user picks one, run the `/apply` workflow on that job's URL, passing the triage verdict as prior context but **re-running the full Step 1 evaluation** - triage never substitutes for it.
 

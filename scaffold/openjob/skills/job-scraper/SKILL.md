@@ -169,6 +169,20 @@ The `source` field records which mechanism produced the entry: `cli` for Step 1b
 
 2. Only present jobs NOT already in the seen list or tracker.
 
+3. Record the run in the workspace documents, so the results survive this session (and its deletion) and `/apply` can refer to them:
+
+```bash
+python3 tools/job_docs.py sync
+```
+
+It reads `seen_jobs.json` + `job_search_tracker.csv` and writes/updates `documents/postings/job-list.md` plus one note per job in `documents/postings/jobs/`. It is idempotent: existing notes keep their captured posting text and hand-written Notes, and low-fit/unranked jobs get no note. If Step 2 fetched a full posting text (webfetch fallback, or a portal detail that returns the full description), save it for that job first:
+
+```bash
+python3 tools/job_docs.py set-posting --key "<key>" --file "<scratch file holding the fetched text>" --source scrape-fetch
+```
+
+Never paste the posting text into the conversation to do this - write the fetched text to a scratch file outside the repo tree and pass its path.
+
 ### Step 4.5: Generate Referral Contact Links (High & Medium Fit Only)
 
 For every job from this run with `fit` of **high** or **medium** (skip low-fit jobs),
@@ -254,6 +268,9 @@ LinkedIn search links:
 - Recruiters/TA search link, for the referral path
 - Role/team-peer search link, for the warm-intro / informational-outreach path
 ```
+
+The run is recorded in `documents/postings/job-list.md` (one note per job in
+`documents/postings/jobs/`), so it stays available in any later session.
 
 After presenting, ask:
 > "Want me to evaluate any of these in detail? Just give me the number(s)."

@@ -32,7 +32,7 @@ export function Logo() {
           </box>
         </Show>
         <text fg={theme.textMuted} selectable={false}>
-          v{OpenJobVersion}
+          {OpenJobVersion === "dev" ? "dev" : `v${OpenJobVersion}`}
         </text>
       </box>
     </box>

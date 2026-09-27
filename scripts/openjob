@@ -35,6 +35,22 @@ mkdir -p "${runtime_dir}"/{config,data,state,cache,logs,tmp,home}
 # framework copy, so nothing is symlinked into the runtime home here. Users are
 # created and switched from the `/users` dialog inside the TUI.
 
+# The dev version names the release this tree is working toward: the latest git
+# tag while the tree sits exactly on it, and the next patch (marked "+dev") once
+# there are commits or edits past it, so a later v0.1.9 release matches the
+# 0.1.9+dev label. A checkout with no tags falls back to "dev", and an
+# explicitly set OPENJOB_VERSION still wins.
+openjob_version="$(git -C "${root_dir}" describe --tags --abbrev=0 2>/dev/null | sed 's/^v//')" || true
+if [[ -n "${openjob_version}" ]]; then
+  if ! git -C "${root_dir}" describe --tags --exact-match >/dev/null 2>&1 \
+    || [[ -n "$(git -C "${root_dir}" status --porcelain 2>/dev/null)" ]]; then
+    if [[ "${openjob_version}" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+      openjob_version="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$((BASH_REMATCH[3] + 1))"
+    fi
+    openjob_version="${openjob_version}+dev"
+  fi
+fi
+
 export OPENJOB_RUNTIME_DIR="${runtime_dir}"
 export OPENJOB_REAL_HOME="${real_home}"
 export OPENJOB_PROJECT_DIR="${project_dir}"
@@ -47,7 +63,7 @@ export TMPDIR="${runtime_dir}/tmp"
 export TMP="${runtime_dir}/tmp"
 export TEMP="${runtime_dir}/tmp"
 export OPENJOB_MODE=1
-export OPENJOB_VERSION="0.1.0"
+export OPENJOB_VERSION="${OPENJOB_VERSION:-${openjob_version:-dev}}"
 
 # Set the title before Bun/OpenCode has a chance to publish its source-runner
 # title. The TUI also keeps the title branded after the renderer starts.

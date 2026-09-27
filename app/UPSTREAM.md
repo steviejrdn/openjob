@@ -48,7 +48,12 @@ Upstream docs and infrastructure that would confuse the product surface:
   official installer instead of self-updating. The TUI performs a once-a-day,
   notification-only version check against the OpenJob GitHub releases
   (`installation/openjob-update.ts`, toast in `app.tsx`, wired through
-  `cli/tui/worker.ts`); `OPENJOB_DISABLE_UPDATE_CHECK=1` turns it off.
+  `cli/tui/worker.ts`); `OPENJOB_DISABLE_UPDATE_CHECK=1` turns it off. Dev
+  builds (`dev`, `<version>+dev`) never check or notify - their version already
+  names the release being worked on - and only released binaries compare
+  versions. The same update refreshes `documents/README.md` inside every user
+  workspace (`cli/cmd/upgrade.ts`): it is framework documentation, not personal
+  data.
 - All inherited `OPENCODE_*` env vars are stripped at startup; `HOME` and
   `XDG_*` point into the OpenJob runtime.
 - Project config stays enabled (`openjob.json`, `.openjob/`) unlike Ocarina's

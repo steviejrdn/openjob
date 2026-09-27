@@ -2,7 +2,7 @@ import path from "path"
 import semver from "semver"
 import { Global } from "../global"
 import { Flag } from "../flag/flag"
-import { OpenJobVersion } from "./version"
+import { OpenJobVersion, OpenJobIsDev } from "./version"
 
 const REPO = "steviejrdn/openjob"
 const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000
@@ -76,23 +76,35 @@ function isNewer(latest: string | undefined, current: string) {
 }
 
 /**
+ * Whether the latest release should be announced for this build: only when it
+ * is a valid version newer than the running one.
+ */
+export function resolveUpdateAvailability(latest: string | undefined, current: string) {
+  if (!latest || !semver.valid(latest)) return false
+  return isNewer(latest, current)
+}
+
+/**
  * Checks the latest OpenJob release without ever updating anything.
  *
- * Returns `updateAvailable: false` for local/dev builds and when
- * OPENJOB_DISABLE_UPDATE_CHECK is set. Results are cached for a day so callers
- * do not hit GitHub on every launch; `force` skips the cache.
+ * Development builds (`dev`, `<version>+dev`) never check and never notify:
+ * their version already names the release being worked on. Released builds are
+ * cached for a day so callers do not hit GitHub on every launch; `force` skips
+ * both the dev short-circuit and the cache (used by `openjob update --check`).
+ * A failed fetch is not cached, so one offline launch cannot hide a new release
+ * for the whole interval.
  */
 export async function checkOpenJobUpdate(input: { force?: boolean } = {}): Promise<UpdateCheck> {
   const current = OpenJobVersion
   if (!input.force) {
-    if (current === "dev") return { current, updateAvailable: false }
+    if (OpenJobIsDev) return { current, updateAvailable: false }
     if (Flag.OPENJOB_DISABLE_UPDATE_CHECK) return { current, updateAvailable: false }
     const cache = await readCache()
     if (cache && Date.now() - cache.checkedAt < CHECK_INTERVAL_MS) {
-      return { current, latest: cache.latest, updateAvailable: isNewer(cache.latest, current) }
+      return { current, latest: cache.latest, updateAvailable: resolveUpdateAvailability(cache.latest, current) }
     }
   }
   const latest = await fetchLatest()
-  await writeCache({ checkedAt: Date.now(), latest })
-  return { current, latest, updateAvailable: isNewer(latest, current) }
+  if (latest) await writeCache({ checkedAt: Date.now(), latest })
+  return { current, latest, updateAvailable: resolveUpdateAvailability(latest, current) }
 }
