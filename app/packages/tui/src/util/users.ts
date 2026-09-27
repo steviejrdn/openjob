@@ -98,25 +98,21 @@ export async function scaffoldUser(root: string, name: string): Promise<string> 
     await mkdir(path.join(target, dir), { recursive: true })
   }
 
-  for (const file of [
-    "AGENTS.md.example",
-    "documents/README.md",
-    "templates/README.md",
-    "SECURITY.md",
-    "cv/main_example.tex",
-    "cover_letters/cover.cls",
-    "cover_letters/cover_example.tex",
-  ]) {
-    const source = path.join(root, file)
-    if (!existsSync(source)) continue
-    const destination = file === "AGENTS.md.example" ? path.join(target, "AGENTS.md") : path.join(target, file)
-    await mkdir(path.dirname(destination), { recursive: true })
-    await cp(source, destination)
-  }
-
-  const openFonts = path.join(root, "cover_letters/OpenFonts")
-  if (existsSync(openFonts)) {
-    await cp(openFonts, path.join(target, "cover_letters/OpenFonts"), { recursive: true })
+  const templateFiles: [source: string, destination: string][] = [
+    ["scaffold/AGENTS.md.example", "AGENTS.md"],
+    ["scaffold/documents/README.md", "documents/README.md"],
+    ["scaffold/templates/README.md", "templates/README.md"],
+    ["scaffold/cv/main_example.tex", "cv/main_example.tex"],
+    ["scaffold/cover_letters/cover.cls", "cover_letters/cover.cls"],
+    ["scaffold/cover_letters/cover_example.tex", "cover_letters/cover_example.tex"],
+    ["SECURITY.md", "SECURITY.md"],
+  ]
+  for (const [source, destination] of templateFiles) {
+    const from = path.join(root, source)
+    if (!existsSync(from)) continue
+    const to = path.join(target, destination)
+    await mkdir(path.dirname(to), { recursive: true })
+    await cp(from, to)
   }
 
   for (const entry of SHARED_ENTRIES) {

@@ -6,11 +6,11 @@ framework_version: 1.0.2
 
 ## Template: Custom cover.cls (XeLaTeX)
 
-Cover letters use a custom LaTeX document class (`cover.cls`) with Google Sans fonts.
+Cover letters use a custom LaTeX document class (`cover.cls`) with Lato fonts.
 
 **Output file:** `cover_letters/cover_<company>_<role>.tex`
 **Compile with:** XeLaTeX (cover.cls requires fontspec)
-**Font directory:** the repo's `fonts/` directory (Google Sans `.ttf` files), referenced from `cover_letters/` as `../fonts/`. Google Sans is proprietary and kept for personal use only; `fonts/` is gitignored and must never be committed. `cover_letters/OpenFonts/fonts/` still holds the original open-source Lato/Raleway files.
+**Font directory:** the repo's shared `fonts/` directory (Lato `.ttf` files), referenced from `cover_letters/` as `../fonts/lato/` and linked into every user workspace. Lato is licensed under the SIL Open Font License and may be redistributed with the repo (see `fonts/OFL.txt`).
 
 ### Compile command
 
@@ -40,7 +40,7 @@ The `\lettercontent{}` macro appends `\\` to its argument. This breaks when the 
 \end{itemize}}
 ```
 
-**Correct — close `\lettercontent{}` before the list and wrap the list in the matching body font (`\gsmedium`, Google Sans Medium) so typography stays consistent:**
+**Correct — close `\lettercontent{}` before the list and wrap the list in the matching body font (`\gsmedium`, Lato) so typography stays consistent:**
 ```latex
 \lettercontent{Here is how my experience maps:}
 

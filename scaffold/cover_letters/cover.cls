@@ -27,27 +27,29 @@
 \definecolor{subheadings}{HTML}{333333}
 
 % Set main fonts
-% Google Sans lives in the repo's /fonts directory (../fonts relative to
-% cover_letters/). It is a proprietary font kept for personal use only and
-% must never be committed to git (see .gitignore).
-\setmainfont[Color=primary, Ligatures=TeX, Path = ../fonts/,
-  BoldItalicFont=GoogleSans-BoldItalic,
-  BoldFont=GoogleSans-Bold,
-  ItalicFont=GoogleSans-Italic]{GoogleSans-Regular}
-\setsansfont[Scale=MatchLowercase,Ligatures=TeX, Path = ../fonts/,
-  BoldFont=GoogleSans-Bold,
-  ItalicFont=GoogleSans-Italic]{GoogleSans-Regular}
+% Lato ships in the repo's shared /fonts directory (../fonts relative to
+% cover_letters/), installed once for every user workspace. Licensed under
+% the SIL Open Font License (see fonts/OFL.txt).
+\setmainfont[Color=primary, Ligatures=TeX, Path = ../fonts/lato/,
+  BoldItalicFont=Lato-BolIta,
+  BoldFont=Lato-Bol,
+  ItalicFont=Lato-RegIta]{Lato-Reg}
+\setsansfont[Scale=MatchLowercase,Ligatures=TeX, Path = ../fonts/lato/,
+  BoldFont=Lato-Bol,
+  ItalicFont=Lato-RegIta]{Lato-Reg}
 
-% Named Google Sans families used across the letter body and headings
-\newfontfamily\gsregular[Ligatures=TeX, Path = ../fonts/,
-  BoldItalicFont=GoogleSans-BoldItalic,
-  BoldFont=GoogleSans-Bold,
-  ItalicFont=GoogleSans-Italic]{GoogleSans-Regular}
-\newfontfamily\gsmedium[Ligatures=TeX, Path = ../fonts/,
-  BoldItalicFont=GoogleSans-BoldItalic,
-  BoldFont=GoogleSans-Bold,
-  ItalicFont=GoogleSans-Italic]{GoogleSans-Medium}
-\newfontfamily\gsbold[Ligatures=TeX, Path = ../fonts/]{GoogleSans-Bold}
+% Named Lato families used across the letter body and headings
+\newfontfamily\latoregular[Ligatures=TeX, Path = ../fonts/lato/,
+  BoldItalicFont=Lato-BolIta,
+  BoldFont=Lato-Bol,
+  ItalicFont=Lato-RegIta]{Lato-Reg}
+\newfontfamily\latobold[Ligatures=TeX, Path = ../fonts/lato/]{Lato-Bol}
+
+% Backwards-compatible aliases: existing letters still use \gsregular,
+% \gsmedium, and \gsbold, which now resolve to Lato.
+\let\gsregular\latoregular
+\let\gsmedium\latoregular
+\let\gsbold\latobold
 
 % Date command
 \setlength{\TPHorizModule}{1mm}

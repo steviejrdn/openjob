@@ -42,6 +42,13 @@
 \usepackage[scale=0.80]{geometry}
 \usepackage{import}
 
+% Lato ships in the repo's shared /fonts directory (../fonts relative to cv/),
+% installed once for every user workspace. Licensed under the SIL Open Font
+% License (see fonts/OFL.txt).
+\usepackage{fontspec}
+\setmainfont[Ligatures=TeX, Path=../fonts/lato/, BoldFont=Lato-Bol, ItalicFont=Lato-RegIta, BoldItalicFont=Lato-BolIta]{Lato-Reg}
+\setsansfont[Ligatures=TeX, Path=../fonts/lato/, BoldFont=Lato-Bol, ItalicFont=Lato-RegIta, BoldItalicFont=Lato-BolIta]{Lato-Reg}
+
 % personal data - replaced by /setup
 \name{[YOUR FIRST NAME]}{[YOUR LAST NAME]}
 \address{[City, Country]}{}{}

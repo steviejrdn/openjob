@@ -150,6 +150,11 @@ OpenJob is a fork of OpenCode. The fork lives in `app/`; this repo wraps it with
 the job-search workspace and a launcher. See [app/UPSTREAM.md](app/UPSTREAM.md)
 for the fork base and the list of patched files.
 
+The repo root holds the shared framework: `.openjob/` (commands, skills, agents),
+`.agents/` (portal CLIs), `tools/`, `salary_lookup.py`, `fonts/` (shared Lato
+fonts, SIL OFL) and `scaffold/` (template sources copied into new user
+workspaces). Per-user data lives in `users/<name>/` and is gitignored.
+
 Requirements: [Bun](https://bun.sh) 1.3.14 (vendored automatically) and Python 3.10+.
 
 ```bash

@@ -61,11 +61,11 @@ Expected output: `Output written on main_<company>_<role>.pdf (2 pages, ...)`. A
 \usepackage[scale=0.77]{geometry}
 \usepackage{import}
 
-% Google Sans (repo fonts/ directory, referenced as ../fonts/ from cv/).
-% Proprietary font, personal use only - fonts/ is gitignored, never commit it.
+% Lato (shared repo fonts/ directory, referenced as ../fonts/ from cv/).
+% Installed once for every user workspace; SIL Open Font License.
 \usepackage{fontspec}
-\setmainfont[Ligatures=TeX, Path=../fonts/, BoldFont=GoogleSans-Bold, ItalicFont=GoogleSans-Italic, BoldItalicFont=GoogleSans-BoldItalic]{GoogleSans-Regular}
-\setsansfont[Ligatures=TeX, Path=../fonts/, BoldFont=GoogleSans-Bold, ItalicFont=GoogleSans-Italic, BoldItalicFont=GoogleSans-BoldItalic]{GoogleSans-Regular}
+\setmainfont[Ligatures=TeX, Path=../fonts/lato/, BoldFont=Lato-Bol, ItalicFont=Lato-RegIta, BoldItalicFont=Lato-BolIta]{Lato-Reg}
+\setsansfont[Ligatures=TeX, Path=../fonts/lato/, BoldFont=Lato-Bol, ItalicFont=Lato-RegIta, BoldItalicFont=Lato-BolIta]{Lato-Reg}
 
 % Personal data
 \name{Stevie}{Jordan}

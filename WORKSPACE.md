@@ -126,7 +126,9 @@ One OpenJob workspace can host several candidates. Run `/users` in the TUI to
 list them, switch, or create a new one. Each user lives in `users/<name>/` with
 their own `AGENTS.md`, `cv/`, `cover_letters/`, `documents/`, tracker, and
 scrape state; the framework (commands, skills, `tools/`, `.agents/`) stays
-shared at the repository root and is linked into each user directory.
+shared at the repository root and is linked into each user directory. Fonts
+are shared too: `users/<name>/fonts` is a symlink to the repo's `fonts/`
+directory (Lato, SIL OFL), so CVs and cover letters compile out of the box.
 
 - Selecting a user makes them the active user and relaunches the TUI in their
   directory, so sessions and context stay isolated per user.
@@ -191,11 +193,11 @@ my-job-search/
 │   ├── linkedin-search/               # LinkedIn public job listings (country-agnostic)
 │   └── freehire-search/               # freehire.me tech job aggregator (multi-market, REST API)
 ├── cv/
-│   └── main_example.tex               # moderncv LaTeX template
+│   └── main_example.tex               # moderncv LaTeX template (Lato)
 ├── cover_letters/
-│   ├── cover.cls                      # Custom cover letter LaTeX class
-│   ├── cover_example.tex              # Example cover letter (structural reference + CI smoke test)
-│   └── OpenFonts/                     # Lato + Raleway fonts
+│   ├── cover.cls                      # Custom cover letter LaTeX class (Lato)
+│   └── cover_example.tex              # Example cover letter (structural reference + CI smoke test)
+├── fonts/                             # Symlink to the shared repo fonts/ (Lato)
 ├── templates/                         # Custom templates registered via /add-template
 │   └── README.md                      # Folder layout instructions
 ├── documents/                         # Career source materials for /setup Path A and /expand
