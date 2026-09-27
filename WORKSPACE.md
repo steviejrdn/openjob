@@ -46,24 +46,27 @@ The framework encodes career guidance best practices, including structured evalu
 
 ### 1. Get a workspace
 
-Clone the repository (the repo *is* a ready workspace) or copy the template that
-the installer extracted:
+Clone the OpenJob host (or use the installer's workspace template) and create
+your user from the TUI:
 
 ```bash
-git clone https://github.com/steviejrdn/openjob ~/my-job-search
-cd ~/my-job-search
+git clone https://github.com/steviejrdn/openjob ~/openjob
+cd ~/openjob
+openjob
+# inside the TUI: /users → Add user… → your name
 ```
 
-```bash
-# or, from an installed release:
-cp -r ~/.local/share/openjob/workspace ~/my-job-search
-cd ~/my-job-search
-```
+The TUI switches into `users/<name>/`; everything below runs there. From an
+installed release, run `openjob` in `~/.local/share/openjob/workspace` and
+create a user the same way.
 
 > [!IMPORTANT]
-> `/setup` (step 3 below) writes your personal data (name, contact details, employment history, salary expectations) into **tracked** files. Keep this repository **private** and never push it to a public remote.
+> `/setup` (step 3 below) writes your personal data (name, contact details, employment history, salary expectations) into `users/<name>/`, which the host repository gitignores. Keep any personal files you add outside `users/` private, and never push them to a public remote.
 
 ### 2. Install job search tools
+
+The portal CLIs live in the shared `.agents/skills/` directory (symlinked into
+your workspace), so this install is done once for the host.
 
 PowerShell:
 
@@ -122,13 +125,13 @@ Postings are treated as untrusted input (the workflow follows no instructions em
 
 ## Multiple users
 
-One OpenJob workspace can host several candidates. Run `/users` in the TUI to
-list them, switch, or create a new one. Each user lives in `users/<name>/` with
-their own `AGENTS.md`, `cv/`, `cover_letters/`, `documents/`, tracker, and
-scrape state; the framework (commands, skills, `tools/`, `.agents/`) stays
-shared at the repository root and is linked into each user directory. Fonts
-are shared too: `users/<name>/fonts` is a symlink to the repo's `fonts/`
-directory (Lato, SIL OFL), so CVs and cover letters compile out of the box.
+One OpenJob host can serve several candidates. Run `/users` in the TUI to list
+them, switch, or create a new one. Each user lives in `users/<name>/` with
+their own `AGENTS.md`, `cv/`, `cover_letters/`, `documents/`, tracker, scrape
+state, and a copy of the framework (`.openjob/` commands, skills, agents), so
+`/setup` personalizes only that user's profile. `tools/`, `.agents/` (portal
+CLIs) and `fonts/` are shared from the host through symlinks — portal skills
+added with `/add-portal` are therefore visible to every user.
 
 - Selecting a user makes them the active user and relaunches the TUI in their
   directory, so sessions and context stay isolated per user.
@@ -154,11 +157,9 @@ directory (Lato, SIL OFL), so CVs and cover letters compile out of the box.
 ## File structure
 
 ```
-my-job-search/
-├── AGENTS.md                          # Main candidate profile + workflow rules
-├── openjob.json                       # OpenJob config: permissions, model
-├── scripts/openjob                    # Dev launcher (XDG sandbox), from the openjob repo
-├── .openjob/
+users/<name>/                          # your workspace, created from /users
+├── .openjob/                          # per-user framework copy (commands, skills, agents)
+│   ├── openjob.json                   # Default agent for this workspace
 │   ├── commands/
 │   │   ├── apply.md                   # /apply workflow (drafter-reviewer)
 │   │   ├── setup.md                   # /setup onboarding (documents folder, CV import, or interview)
@@ -185,7 +186,8 @@ my-job-search/
 │   │   ├── job-scraper/               # Job search orchestration
 │   │   └── upskill/                   # /upskill skill gap analysis and learning plan
 │   └── agents/                        # Subagents: reviewer (drafter-reviewer), research assistant
-├── .agents/skills/                    # Job portal CLI tools
+├── AGENTS.md                          # Main candidate profile + workflow rules
+├── .agents -> ../../.agents           # Shared portal CLI tools (symlink)
 │   ├── jobbank-search/                # Akademikernes Jobbank (Denmark)
 │   ├── jobdanmark-search/             # Jobdanmark.dk (Denmark)
 │   ├── jobindex-search/               # Jobindex.dk (Denmark)
@@ -197,7 +199,7 @@ my-job-search/
 ├── cover_letters/
 │   ├── cover.cls                      # Custom cover letter LaTeX class (Lato)
 │   └── cover_example.tex              # Example cover letter (structural reference + CI smoke test)
-├── fonts/                             # Symlink to the shared repo fonts/ (Lato)
+├── fonts -> ../../fonts                # Shared Lato fonts (symlink)
 ├── templates/                         # Custom templates registered via /add-template
 │   └── README.md                      # Folder layout instructions
 ├── documents/                         # Career source materials for /setup Path A and /expand
@@ -208,18 +210,16 @@ my-job-search/
 │   ├── references/                    # Reference letters
 │   └── applications/                  # Past application records (<company>_<role>/)
 ├── salary_lookup.py                   # Salary benchmarking tool (BYO data)
-├── tools/
+├── tools -> ../../tools                # Shared tooling (symlink)
 │   ├── convert_salary_excel.py        # Convert salary Excel to JSON
 │   ├── lint_skills.py                 # Lint skills/commands/openjob.json
 │   ├── rank_state.py                  # /rank state helper (seen_jobs.json reads/writes)
 │   ├── robots_check.py                # Gate the browser-header retry against robots.txt
 │   ├── verify_pdf.py                  # Verify a compiled PDF's page count and extractable text
 │   └── README_SALARY_TOOL.md          # Salary tool setup instructions
-├── .runtime/                          # gitignored: isolated OpenJob config/data/state/cache
 ├── job_scraper/                       # Scraper state (seen jobs, results)
 ├── upskill/                           # /upskill report output (markdown reports per run)
-├── job_search_tracker.csv             # Application tracking spreadsheet
-└── SETUP.md                           # Detailed setup guide
+└── job_search_tracker.csv             # Application tracking spreadsheet
 ```
 
 ## How `/apply` works

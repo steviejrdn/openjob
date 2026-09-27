@@ -13,7 +13,7 @@ Usage:
     python tools/convert_salary_excel.py <path-to-excel-file> --source "My Union Stats 2025"
     python tools/convert_salary_excel.py <path-to-excel-file> --baseline 100 --baseline-desc "Index 100 = median salary"
 
-The output file (salary_data.json) will be written to the repository root.
+The output file (salary_data.json) will be written to the workspace root.
 
 Expected Excel format:
     - A header row with column names
@@ -324,7 +324,7 @@ def main():
     parser.add_argument("excel_file", help="Path to the Excel file with salary data")
     parser.add_argument(
         "--output", default=None,
-        help="Output JSON file path (default: salary_data.json in repo root)",
+        help="Output JSON file path (default: salary_data.json in the workspace root)",
     )
     parser.add_argument(
         "--source", default=None,
@@ -349,7 +349,7 @@ def main():
         print("Error: openpyxl is required. Install it with: pip install openpyxl", file=sys.stderr)
         sys.exit(1)
 
-    output_path = Path(args.output) if args.output else Path(__file__).parent.parent / "salary_data.json"
+    output_path = Path(args.output) if args.output else Path.cwd() / "salary_data.json"
 
     print(f"Reading: {excel_path}")
     wb = openpyxl.load_workbook(excel_path, read_only=True, data_only=True)

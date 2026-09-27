@@ -9,9 +9,19 @@ export type UserInfo = {
 }
 
 // Shared framework entries symlinked into every user directory so the
-// command files keep resolving `tools/...`, `.agents/...` and
-// `salary_lookup.py` relative to the workspace root.
-const SHARED_ENTRIES = ["tools", "salary_lookup.py", ".agents", "fonts"]
+// command files keep resolving `tools/...`, `.agents/...` and fonts relative
+// to the workspace root. Portal CLIs under `.agents/` are shared on purpose:
+// `/add-portal` writes there and every user sees the added portal.
+const SHARED_ENTRIES = ["tools", ".agents", "fonts"]
+
+// Same header /outcome and /apply create on demand, so a fresh workspace is
+// complete for /scrape and /rank from the first run.
+const TRACKER_HEADER =
+  "date,company,sector,role,role_type,channel,status,contact_person,fit_rating,notes,cv_file,cover_letter_file,source,deadline"
+
+// Framework sources in the repo live under `scaffold/`; the release bundle
+// keeps the same layout, so the fallbacks cover legacy/standalone copies.
+const FRAMEWORK_SOURCES = ["scaffold/openjob", ".openjob"]
 
 const USER_NAME = /^[a-z0-9][a-z0-9._-]*$/i
 
@@ -98,22 +108,37 @@ export async function scaffoldUser(root: string, name: string): Promise<string> 
     await mkdir(path.join(target, dir), { recursive: true })
   }
 
-  const templateFiles: [source: string, destination: string][] = [
-    ["scaffold/AGENTS.md.example", "AGENTS.md"],
-    ["scaffold/documents/README.md", "documents/README.md"],
-    ["scaffold/templates/README.md", "templates/README.md"],
-    ["scaffold/cv/main_example.tex", "cv/main_example.tex"],
-    ["scaffold/cover_letters/cover.cls", "cover_letters/cover.cls"],
-    ["scaffold/cover_letters/cover_example.tex", "cover_letters/cover_example.tex"],
-    ["SECURITY.md", "SECURITY.md"],
+  const templateFiles: { destination: string; sources: string[] }[] = [
+    { destination: "AGENTS.md", sources: ["scaffold/AGENTS.md.example", "AGENTS.md.example"] },
+    { destination: "documents/README.md", sources: ["scaffold/documents/README.md", "documents/README.md"] },
+    { destination: "templates/README.md", sources: ["scaffold/templates/README.md", "templates/README.md"] },
+    { destination: "cv/main_example.tex", sources: ["scaffold/cv/main_example.tex", "cv/main_example.tex"] },
+    {
+      destination: "cover_letters/cover.cls",
+      sources: ["scaffold/cover_letters/cover.cls", "cover_letters/cover.cls"],
+    },
+    {
+      destination: "cover_letters/cover_example.tex",
+      sources: ["scaffold/cover_letters/cover_example.tex", "cover_letters/cover_example.tex"],
+    },
+    { destination: "salary_lookup.py", sources: ["scaffold/salary_lookup.py", "salary_lookup.py"] },
+    { destination: "SECURITY.md", sources: ["SECURITY.md"] },
   ]
-  for (const [source, destination] of templateFiles) {
-    const from = path.join(root, source)
-    if (!existsSync(from)) continue
+  for (const { destination, sources } of templateFiles) {
+    const from = sources.map((source) => path.join(root, source)).find((source) => existsSync(source))
+    if (!from) continue
     const to = path.join(target, destination)
     await mkdir(path.dirname(to), { recursive: true })
     await cp(from, to)
   }
+
+  // Per-user framework copy: commands, skills, agents and default_agent config
+  // live inside the user directory, so /setup personalizes only this user's
+  // profile and no state is shared between users.
+  const framework = FRAMEWORK_SOURCES.map((source) => path.join(root, source)).find((source) => existsSync(source))
+  if (framework) await cp(framework, path.join(target, ".openjob"), { recursive: true })
+
+  await writeFile(path.join(target, "job_search_tracker.csv"), `${TRACKER_HEADER}\n`)
 
   for (const entry of SHARED_ENTRIES) {
     const source = path.join(root, entry)

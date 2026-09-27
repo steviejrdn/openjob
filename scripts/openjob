@@ -31,18 +31,9 @@ fi
 
 mkdir -p "${runtime_dir}"/{config,data,state,cache,logs,tmp,home}
 
-# Expose the repo's .openjob config (commands, skills, agents) and .agents
-# portal CLIs to OpenJob's config discovery from any project directory. The app
-# walks up from the runtime HOME looking for .openjob/.agents, so a symlink
-# there makes the bundled workspace available globally without touching the
-# project the user launched from.
-for entry in .openjob .agents; do
-  repo_entry="${root_dir}/${entry}"
-  home_entry="${runtime_dir}/home/${entry}"
-  if [[ -d "${repo_entry}" ]] && { [[ -L "${home_entry}" ]] || [[ ! -e "${home_entry}" ]]; }; then
-    ln -sfn "${repo_entry}" "${home_entry}"
-  fi
-done
+# OpenJob is multi-user: every user workspace carries its own `.openjob`
+# framework copy, so nothing is symlinked into the runtime home here. Users are
+# created and switched from the `/users` dialog inside the TUI.
 
 export OPENJOB_RUNTIME_DIR="${runtime_dir}"
 export OPENJOB_REAL_HOME="${real_home}"

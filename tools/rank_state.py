@@ -45,7 +45,7 @@ import tempfile
 from datetime import date, timedelta
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path.cwd()
 STATE = ROOT / "job_scraper" / "seen_jobs.json"
 TRACKER = ROOT / "job_search_tracker.csv"
 

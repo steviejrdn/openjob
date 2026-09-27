@@ -267,8 +267,9 @@ echo
 echo "Next steps:"
 if [[ -n "${WORKSPACE_DIR}" ]]; then
   echo "  cd ${WORKSPACE_DIR} && openjob"
+  echo "                          # then /users → Add user… → /setup"
 else
-  echo "  openjob                 # run in any directory"
-  echo "  cp -r ${RUNTIME_DIR}/workspace ~/my-job-search && cd ~/my-job-search && openjob"
-  echo "                          # for a fresh, fully scaffolded job-search workspace"
+  echo "  openjob                 # run in any OpenJob host directory"
+  echo "                          # (the extracted template: ${RUNTIME_DIR}/workspace)"
+  echo "  # inside the TUI: /users → Add user… → /setup"
 fi

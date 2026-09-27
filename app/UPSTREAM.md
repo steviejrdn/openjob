@@ -69,7 +69,8 @@ Upstream docs and infrastructure that would confuse the product surface:
   native `/users` command (list, switch, create), and a process re-exec in
   `cli/cmd/tui.ts` when a command returns `reason.type === "reopen"` (restarting
   the TUI in another directory; rebuilding the renderer in place crashes Bun).
-  `resolveThreadDirectory` honors `users/.active` for bare launches. Per-user
-  data is gitignored.
+  `resolveThreadDirectory` honors `users/.active` for bare launches. Each user
+  gets its own `.openjob` framework copy from `scaffold/openjob` (repo layout),
+  and `users/` is gitignored.
 - The built-in command palette/slash surface is trimmed via
   `packages/tui/src/prompt/commands.ts`.

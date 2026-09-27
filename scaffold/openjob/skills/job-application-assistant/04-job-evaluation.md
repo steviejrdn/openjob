@@ -60,9 +60,9 @@ How well do the required/preferred skills align with the candidate's capabilitie
 | 40-59 | Partial match, significant upskilling needed |
 | 0-39 | Fundamental mismatch |
 
-**Strong match areas:** Market research and insights (concept and product testing, claims/packaging testing, segmentation, usage & attitude, shopper/planogram, corporate reputation); FMCG, Personal Care, and Tobacco sector knowledge; client consulting and stakeholder management; research team leadership, coaching, and quality assurance.
-**Moderate match areas:** Data analysis and analytics (SQL, Google Analytics); AI for research (generative AI, agentic tooling); adjacent product/UX research; survey analytics and reporting automation.
-**Weak match areas:** Not yet evidenced on the profile: advanced statistical software (SPSS, R), formal product management, and sectors outside consumer research (B2B tech, healthcare, finance) unless the methods transfer cleanly. Treat these as gaps to probe per posting, not as fixed weaknesses.
+**Strong match areas:** [YOUR_PRIMARY_SKILLS]
+**Moderate match areas:** [YOUR_SECONDARY_SKILLS]
+**Weak match areas:** [SKILLS_YOU_LACK]
 
 ### 2. Experience Match (0-100)
 Does work history align with what they're looking for? Match on the function and nature of the work performed, not the literal job title - a "Data Consultant" and a "Data Scientist" role can be functionally identical.
@@ -74,9 +74,9 @@ Does work history align with what they're looking for? Match on the function and
 | 40-59 | Adjacent experience, would need to make the case |
 | 0-39 | Unrelated experience |
 
-**Strong:** Market research and insights roles (agency or client side) in FMCG, Personal Care, and Tobacco; innovation, segmentation, shopper, and reputation research.
-**Moderate:** Insights/analytics roles in adjacent consumer sectors; product/UX research; research-tech and AI-tooling roles.
-**Entry-level:** AI/tech-sector product or engineering roles; research roles outside consumer goods.
+**Strong:** [YOUR_DIRECT_EXPERIENCE_DOMAINS]
+**Moderate:** [YOUR_ADJACENT_EXPERIENCE]
+**Entry-level:** [ROLES_WITH_LIMITED_EXPERIENCE]
 
 ### 3. Behavioral/Culture Fit (0-100)
 Does the role and company culture match the behavioral profile?
@@ -107,19 +107,19 @@ Does this role advance career goals and contain tasks that energize?
 | 0-39 | Dead end or backwards step |
 
 **Career goals:**
-- Move into a Consumer Insight Manager or Senior Research Manager role.
-- Preferably within a tech company or an innovation team at an FMCG company.
-- Keep building practical AI and analytics capability for research work.
+- [YOUR_CAREER_GOAL_1]
+- [YOUR_CAREER_GOAL_2]
+- [YOUR_CAREER_GOAL_3]
 
 **Motivation filter:** Evaluate not just whether you *can* do the tasks, but whether the tasks will *energize* you. Consider:
-- Tasks that energize: anything new that has not yet been learned or been exposed to; coaching and developing people; applying AI and analytics to make research faster and smarter; collaborative problem-solving.
-- Tasks that drain: repetitive work with no new learning; managing around unaccountable or indecisive leadership; environments where client satisfaction consistently overrides team wellbeing.
+- Tasks that energize: [YOUR_ENERGIZING_TASKS]
+- Tasks that drain: [YOUR_DRAINING_TASKS]
 - Non-task factors: leadership style, department culture, company values, degree of autonomy
 
 **Life situation alignment:** Consider personal constraints:
-- **Security**: Currently earning IDR 23M net/month; needs at least a 30% increase (target approx. IDR 30M net/month) plus health insurance and medical/outpatient cover for spouse and child. Contract-based roles are a deal-breaker.
-- **Flexibility**: Based in Jakarta; willing to commute within Jakarta only (Jabodetabek commute not acceptable); remote work acceptable; relocation outside Jakarta is not.
-- **Professional development**: Wants continued exposure to new methods and technology; growth toward Consumer Insight Manager / Senior Research Manager with an AI and analytics edge.
+- **Security**: [YOUR_FINANCIAL_SITUATION_CONTEXT]
+- **Flexibility**: [YOUR_SCHEDULE_CONSTRAINTS]
+- **Professional development**: [YOUR_GROWTH_PRIORITIES]
 
 ### 6. Salary Benchmark (Optional)
 

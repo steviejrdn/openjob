@@ -49,6 +49,8 @@ The `\lettercontent{}` macro appends `\\` to its argument. This breaks when the 
     \item ...
 \end{itemize}\par}
 \vspace{6pt}
+
+\lettercontent{[next paragraph]}
 ```
 
 The font wrapper is mandatory — if you just move `\begin{itemize}` outside `\lettercontent{}` without the `\gsmedium` block, bullets render in a different font and visually mismatch the rest of the letter.
@@ -74,7 +76,7 @@ The font wrapper is mandatory — if you just move `\begin{itemize}` outside `\l
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %     TITLE NAME
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\namesection{}{\Huge{Stevie Jordan}}{  \href{mailto:steviejrdn@gmail.com}{steviejrdn@gmail.com} | +62 888 962 0382 |  \urlstyle{same}\href{https://www.linkedin.com/in/steviejrdn/}{LinkedIn}
+\namesection{}{\Huge{[YOUR_NAME]}}{  \href{mailto:[YOUR_EMAIL]}{[YOUR_EMAIL]} | [YOUR_PHONE] |  \urlstyle{same}\href{[YOUR_LINKEDIN_URL]}{LinkedIn}
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -106,7 +108,7 @@ The font wrapper is mandatory — if you just move `\begin{itemize}` outside `\l
 % doubled break triggers "! LaTeX Error: There's no line here to end."
 \closing{Kind regards,}
 
-\signature{Stevie Jordan}
+\signature{[YOUR_NAME]}
 \end{flushright}
 \end{document}
 ```

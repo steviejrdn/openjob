@@ -98,32 +98,33 @@ Inside the TUI, start with `/setup`. The full workflow guide lives in
 
 ### Starting a workspace
 
-The recommended setup is to clone this repository — the repo *is* a ready
-workspace — and run OpenJob from it:
+The repository (or the installer's workspace template) is an OpenJob **host**:
+it carries the shared framework (`scaffold/`, `.agents/`, `tools/`, `fonts/`)
+and no personal data. Start OpenJob and create your user from the TUI:
 
 ```bash
-git clone https://github.com/steviejrdn/openjob ~/my-job-search
-cd ~/my-job-search
+git clone https://github.com/steviejrdn/openjob ~/openjob
+cd ~/openjob
 openjob
+# inside the TUI:
+#   /users  → Add user…  → your name   (creates users/<name>/)
+#   /setup  → build your profile
 ```
 
-If you installed from a release, scaffold a fresh workspace from the template:
+From an installed release, run `openjob` in the extracted workspace template
+(`~/.local/share/openjob/workspace`) and create a user the same way.
 
-```bash
-cp -r ~/.local/share/openjob/workspace ~/my-job-search
-cd ~/my-job-search
-openjob
-```
-
-Personal data (profile, CVs, tracker, application archive) is gitignored and
-never leaves your machine.
+Personal data lives in `users/<name>/`, which is gitignored and never leaves
+your machine.
 
 ### Multiple users
 
-OpenJob can host several candidates in one workspace. Each user gets a
-`users/<name>/` directory with their own profile, CV, documents, and tracker,
-while the framework (commands, skills, tools) stays shared at the repository
-root.
+Each user gets a `users/<name>/` directory with their own profile, CV,
+documents, tracker, scrape state, and a copy of the framework (`.openjob/`
+commands, skills, agents), so `/setup` personalizes only that user's files.
+`tools/`, `.agents/` (portal CLIs) and `fonts/` are shared from the host
+through symlinks; portal skills added with `/add-portal` are visible to every
+user.
 
 - `/users` inside the TUI lists users, switches to another one (the TUI
   relaunches in that user's directory), and creates a new user.
@@ -150,10 +151,11 @@ OpenJob is a fork of OpenCode. The fork lives in `app/`; this repo wraps it with
 the job-search workspace and a launcher. See [app/UPSTREAM.md](app/UPSTREAM.md)
 for the fork base and the list of patched files.
 
-The repo root holds the shared framework: `.openjob/` (commands, skills, agents),
-`.agents/` (portal CLIs), `tools/`, `salary_lookup.py`, `fonts/` (shared Lato
-fonts, SIL OFL) and `scaffold/` (template sources copied into new user
-workspaces). Per-user data lives in `users/<name>/` and is gitignored.
+The repo root holds the shared framework: `.agents/` (portal CLIs), `tools/`,
+`fonts/` (shared Lato fonts, SIL OFL) and `scaffold/` (template sources copied
+into new user workspaces: `openjob/` framework, `salary_lookup.py`, CV/cover
+letter templates, documents skeleton). Per-user data and framework copies live
+in `users/<name>/` and are gitignored.
 
 Requirements: [Bun](https://bun.sh) 1.3.14 (vendored automatically) and Python 3.10+.
 

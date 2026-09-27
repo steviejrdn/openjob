@@ -4,11 +4,11 @@
 Run from anywhere: python tools/lint_skills.py
 
 Checks:
-- Every SKILL.md (.openjob/skills/*, .agents/skills/*) has YAML frontmatter that
+- Every SKILL.md (scaffold/openjob/skills/*, .agents/skills/*) has YAML frontmatter that
   parses, with non-empty `name` and `description` keys
 - `allowed-tools` entries of the form `Bash(bun run <path> *)` point at files
   that exist (skill paths resolve relative to the repo root and to .agents/)
-- Every .openjob/commands/*.md starts with a `# /<name>` title
+- Every scaffold/openjob/commands/*.md starts with a `# /<name>` title
 - openjob.json is valid JSON with a permission object
 
 Exit code 0 on success, 1 with a failure list otherwise.
@@ -101,12 +101,12 @@ def check_settings() -> None:
 
 
 def main() -> int:
-    skills = sorted(ROOT.glob(".openjob/skills/*/SKILL.md")) + sorted(ROOT.glob(".agents/skills/*/SKILL.md"))
-    commands = sorted((ROOT / ".openjob" / "commands").glob("*.md"))
+    skills = sorted(ROOT.glob("scaffold/openjob/skills/*/SKILL.md")) + sorted(ROOT.glob(".agents/skills/*/SKILL.md"))
+    commands = sorted((ROOT / "scaffold" / "openjob" / "commands").glob("*.md"))
     if not skills:
         errors.append("no SKILL.md files found - glob roots are wrong or the tree moved")
     if not commands:
-        errors.append("no command files found under .openjob/commands/")
+        errors.append("no command files found under scaffold/openjob/commands/")
 
     for skill in skills:
         check_skill(skill)

@@ -122,19 +122,21 @@ The default extractor is **pypdf** (BSD, `pip install pypdf`). Poppler `pdftotex
 
 If a command still uses `pdftotext -layout`, it must pass `-enc UTF-8` as well. If **neither** extractor is available, `/apply` skips the mechanical check with a warning and falls back to a visual keyword review — everything else works normally.
 
-## 2. Repository layout
+## 2. Workspace layout
 
-This workspace is a port of AI Job Search, bundled with OpenJob. Keep your copy
-private: `/setup` (section 4) writes your personal data into **tracked** files.
+OpenJob is multi-user: the repository (or the installer's workspace template)
+is the **host**, and your personal workspace lives in `users/<name>/`. Create
+it from the TUI with `/users → Add user…`; the TUI switches into it. `/setup`
+(section 4) writes your personal data there, and the host gitignores the whole
+`users/` directory.
 
 ```bash
-cd my-job-search
+openjob
+# inside the TUI: /users → Add user… → your name
 ```
 
-To keep the profile out of any remote entirely, just commit locally and don't add one. If you do want a remote, use a **private** repository you own.
-
 ## 3. Install job search CLI dependencies
-Run these from the repository root.
+Run these from the host root (the `.agents/` portal CLIs are shared by every user).
 
 - PowerShell:
 
@@ -209,7 +211,7 @@ The `--section search` option is especially useful as your priorities evolve. It
 
 If you have salary data (from a union, salary survey, Glassdoor, or personal research):
 
-1. **Option A:** Create `salary_data.json` manually in the repo root (see `tools/README_SALARY_TOOL.md` for the format)
+1. **Option A:** Create `salary_data.json` manually in your workspace root (`users/<name>/`, next to `salary_lookup.py`) — see `tools/README_SALARY_TOOL.md` for the format
 2. **Option B:** Convert from Excel:
    ```bash
    pip install openpyxl
@@ -259,19 +261,18 @@ These commands apply to the stock templates (moderncv CV, `cover.cls` cover lett
 
 ## 8. Isolated "mini OpenJob" setup
 
-This copy runs as its own OpenJob instance, separate from your global OpenJob. The
-launcher `openjob` points OpenJob at dedicated XDG config/data/state/cache
-directories and at this repo's `openjob.json` + `.openjob/`, so its config, provider
-auth, sessions, and cache never mix with the global install.
+OpenJob runs isolated from any global OpenCode install: the `openjob` launcher
+points it at dedicated XDG config/data/state/cache directories, so provider
+auth, sessions, and cache never mix with a global install.
 
 ```bash
-openjob            # interactive TUI in this repo
+openjob            # interactive TUI
 openjob run "..."  # one-shot
 ```
 
-There is **no upstream remote**: this is a standalone personal copy. To pull improvements
-from the original project you would add it as a remote manually and merge by hand,
-re-applying the OpenJob renames — optional and not wired up.
+Configuration comes from the host's `openjob.json` plus your workspace's
+`.openjob/` framework copy. The host gitignores `users/`, so personal data is
+never committed to the host repository.
 
 ## Troubleshooting
 

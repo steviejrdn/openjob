@@ -252,15 +252,12 @@ if (Script.release) {
   const workspace = "dist/workspace"
   await $`rm -rf ${workspace}`
   await $`mkdir -p ${workspace}`
-  await $`cp -r ../../../.openjob ${workspace}/.openjob`
   await $`cp -r ../../../.agents ${workspace}/.agents`
   await $`cp -r ../../../tools ${workspace}/tools`
   await $`cp -r ../../../fonts ${workspace}/fonts`
-  await $`cp -r ../../../scaffold/. ${workspace}/`
-  await $`cp ../../../salary_lookup.py ${workspace}/salary_lookup.py`
+  await $`cp -r ../../../scaffold ${workspace}/scaffold`
   await $`cp ../../../openjob.json ${workspace}/openjob.json`
   await $`cp ../../../SECURITY.md ${workspace}/SECURITY.md`
-  await $`mkdir -p ${workspace}/job_scraper ${workspace}/upskill ${workspace}/company_research`
   await $`tar -czf dist/openjob-workspace.tar.gz -C ${workspace} .`
 
   await $`gh release upload v${Script.version} ./dist/*.zip ./dist/*.tar.gz --clobber --repo ${process.env.GH_REPO}`
