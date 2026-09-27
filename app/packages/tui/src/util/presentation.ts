@@ -8,6 +8,11 @@ function wordmark(pad = "") {
   return openjobAscii.map((line) => `${pad}${line}`)
 }
 
+/** Logo-only banner, shown when OpenJob exits outside a session. */
+export function brandEpilogue() {
+  return [...wordmark("  "), ""].join("\n")
+}
+
 export function sessionEpilogue(input: { title: string; sessionID?: string }) {
   const weak = (text: string) => `${dim}${text.padEnd(10, " ")}${reset}`
   return [

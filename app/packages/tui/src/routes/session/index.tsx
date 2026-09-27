@@ -69,7 +69,7 @@ import { QuestionPrompt } from "./question"
 import { DialogExportOptions } from "../../ui/dialog-export-options"
 import * as Model from "../../util/model"
 import { formatTranscript } from "../../util/transcript"
-import { sessionEpilogue } from "../../util/presentation"
+import { brandEpilogue, sessionEpilogue } from "../../util/presentation"
 import { setPreLayoutSiblingMargin } from "../../util/layout"
 import { useTuiConfig } from "../../config"
 import { useClipboard } from "../../context/clipboard"
@@ -203,7 +203,7 @@ export function Session() {
     const title = Locale.truncate(session()?.title ?? "", 50)
     setEpilogue(sessionEpilogue({ title, sessionID: session()?.id }))
   })
-  onCleanup(() => setEpilogue())
+  onCleanup(() => setEpilogue(brandEpilogue()))
   const children = createMemo(() => {
     const parentID = session()?.parentID ?? session()?.id
     return sync.data.session

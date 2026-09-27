@@ -6,6 +6,7 @@ import { Global } from "@opencode-ai/core/global"
 import { Flag } from "@opencode-ai/core/flag/flag"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { BRAND } from "./branding"
+import { brandEpilogue } from "./util/presentation"
 import { isOpenJobPaletteCommand } from "./prompt/commands"
 import { ClipboardProvider, useClipboard } from "./context/clipboard"
 import { ExitProvider, useExit } from "./context/exit"
@@ -187,7 +188,7 @@ function isVersionGreater(left: string, right: string) {
 
 export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
   const global = yield* Global.Service
-  const exit = { epilogue: undefined as string | undefined, reason: undefined as unknown }
+  const exit = { epilogue: brandEpilogue() as string | undefined, reason: undefined as unknown }
   const result = yield* Effect.scoped(
     Effect.gen(function* () {
       const renderer = yield* Effect.acquireRelease(
