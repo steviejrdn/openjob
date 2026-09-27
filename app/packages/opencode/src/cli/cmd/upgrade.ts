@@ -4,6 +4,7 @@ import { existsSync, readdirSync } from "node:fs"
 import { cp, mkdir } from "node:fs/promises"
 import { Flag } from "@opencode-ai/core/flag/flag"
 import { hostDirectory } from "@opencode-ai/core/installation/host"
+import { realUserEnv } from "@opencode-ai/core/installation/real-env"
 import { OpenJobVersion } from "@opencode-ai/core/installation/version"
 import { checkOpenJobUpdate } from "@opencode-ai/core/installation/openjob-update"
 import { UI } from "../ui"
@@ -109,10 +110,14 @@ export const UpgradeCommand = {
     UI.println(`  Updating to ${target === "latest" ? "latest" : `v${target}`}…`)
     UI.empty()
 
-    const env: Record<string, string> = { ...(process.env as Record<string, string>) }
+    const env = realUserEnv()
     env.OPENJOB_VERSION = target
     env.OPENJOB_INSTALL_DIR = path.dirname(process.execPath)
     if (Flag.OPENJOB_RUNTIME_DIR) env.OPENJOB_RUNTIME_DIR = Flag.OPENJOB_RUNTIME_DIR
+    // Refresh the same host the user is running from, so a sandboxed HOME can
+    // never relocate the workspace.
+    const host = hostDirectory()
+    if (host) env.OPENJOB_HOST_DIR = host
 
     const child = Bun.spawn(["bash", "-c", `curl -fsSL ${INSTALLER_URL} | bash`], {
       env,
