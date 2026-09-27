@@ -15,8 +15,9 @@ Layout:
 
 - **Candidate profile + rules:** this `AGENTS.md` (loaded automatically as instructions).
 - **Canonical workflow specs:** `.openjob/commands/` (slash commands) and
-  `.openjob/skills/` (skills + methodology files). Treat these as the single source of
-  truth; do not duplicate them elsewhere.
+  `.openjob/skills/` (skills + methodology files), relative to this workspace
+  (not the host root). Treat these as the single source of truth; do not
+  duplicate them elsewhere.
 - **Portal search CLIs:** `.agents/skills/*/cli/` (Bun/TypeScript), orchestrated by
   `/scrape`. `SKILL.md` per portal documents its flags and its `enabled:` toggle.
 - **Runtime tools:** `tools/` (`rank_state.py`, `verify_pdf.py`, `robots_check.py`, ...).

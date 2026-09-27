@@ -129,4 +129,33 @@ describe("tool.glob", () => {
       }
     }),
   )
+
+  it.instance("matches files inside hidden directories", () =>
+    Effect.gen(function* () {
+      const test = yield* TestInstance
+      const skill = path.join(test.directory, ".openjob", "skills", "job-application-assistant", "09-web-research.md")
+      yield* Effect.promise(() => Bun.write(skill, "# web research\n"))
+      const info = yield* GlobTool
+      const glob = yield* info.init()
+      const result = yield* glob.execute({ pattern: "**/09-web-research.md" }, ctx)
+      expect(result.metadata.count).toBe(1)
+      expect(result.output).toContain(skill)
+    }),
+  )
+
+  it.instance("excludes .openjob backup directories", () =>
+    Effect.gen(function* () {
+      const test = yield* TestInstance
+      const current = path.join(test.directory, ".openjob", "skills", "current.md")
+      const backup = path.join(test.directory, ".openjob.bak-0.1.6", "skills", "old.md")
+      yield* Effect.promise(() => Bun.write(current, "# current\n"))
+      yield* Effect.promise(() => Bun.write(backup, "# old\n"))
+      const info = yield* GlobTool
+      const glob = yield* info.init()
+      const result = yield* glob.execute({ pattern: "**/*.md" }, ctx)
+      expect(result.metadata.count).toBe(1)
+      expect(result.output).toContain(current)
+      expect(result.output).not.toContain(".openjob.bak")
+    }),
+  )
 })

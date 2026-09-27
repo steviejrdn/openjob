@@ -39,6 +39,7 @@ Upstream docs and infrastructure that would confuse the product surface:
 | Built-in TUI plugins | `packages/tui/src/feature-plugins/builtins.ts` (plugin manager removed), `packages/tui/src/component/startup-loading.tsx` |
 | TUI sidebar removed | `packages/tui/src/routes/session/sidebar.tsx` (removed), `packages/tui/src/feature-plugins/sidebar/*` (removed) |
 | Multi-user | `packages/tui/src/util/users.ts` (new), `packages/tui/src/component/dialog-users.tsx` (new), `packages/opencode/src/cli/cmd/tui.ts` (reopen loop + `users/.active`) |
+| Tool file search | `packages/opencode/src/tool/glob.ts`, `packages/core/src/tool/glob.ts`, `packages/core/src/ripgrep.ts` |
 | TUI strings | `packages/tui/src/attention.ts`, `packages/tui/src/component/{dialog-provider,dialog-status,error-component}.tsx`, `packages/tui/src/context/theme.tsx`, `packages/tui/src/feature-plugins/home/tips-view.tsx`, `packages/tui/src/util/error.ts` |
 
 ## Intentional behavior differences
@@ -69,6 +70,11 @@ Upstream docs and infrastructure that would confuse the product surface:
   keybind are gone, and session content always uses the full terminal width.
   Its built-in plugins (`context`, `mcp`, `lsp`, `todo`, `files`, `footer`) are
   undeclared and deleted; the `sidebar_*` plugin slots stay in the plugin API.
+- File glob searches include hidden directories (`.openjob/`, `.agents/`) and
+  skip `.openjob.bak-*` framework backups. The whole OpenJob framework lives in
+  hidden directories, so upstream's hidden-file exclusion made agents unable to
+  find commands and skills with Glob, and a missing path could send them looking
+  at the host root instead of the active user workspace.
 - The built-in TUI plugin manager is removed
   (`packages/tui/src/feature-plugins/builtins.ts`), so the palette has no
   "Plugins" / "Install plugin" entries. The `feature-plugins/system/plugins.tsx`

@@ -164,6 +164,7 @@ const layer = Layer.effect(
             ...(input.follow ? ["--follow"] : []),
             `--glob=${input.pattern}`,
             "--glob=!**/.git/**",
+            "--glob=!**/.openjob.bak*/**",
             ".",
           ],
           parse: (line) =>
