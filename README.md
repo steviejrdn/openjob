@@ -133,6 +133,11 @@ Until the first user exists, the host home screen shows a "No workspace yet —
 run /users to create one" hint, and the agent is the built-in Build agent. It
 switches to the OpenJob agent once you are inside a user workspace.
 
+With the installed binary you do not need to `cd` anywhere: running `openjob`
+from any directory opens the installed host workspace
+(`~/.local/share/openjob/workspace`), so `/users` always shows the same list.
+Running `openjob` inside a user workspace keeps you in that user.
+
 From an installed release, run `openjob` in the extracted workspace template
 (`~/.local/share/openjob/workspace`) and create a user the same way.
 

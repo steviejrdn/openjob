@@ -90,6 +90,19 @@ export async function scaffoldUser(root: string, name: string): Promise<string> 
   const target = userDirectory(root, name)
   if (existsSync(target)) throw new Error(`User already exists: ${name}`)
 
+  // Fail loudly instead of creating a half-scaffolded workspace: without the
+  // framework sources the user would have no commands, skills, or fonts.
+  const framework = FRAMEWORK_SOURCES.map((source) => path.join(root, source)).find((source) => existsSync(source))
+  const missing = [
+    ...(framework ? [] : ["scaffold/openjob"]),
+    ...SHARED_ENTRIES.filter((entry) => !existsSync(path.join(root, entry))),
+  ]
+  if (missing.length) {
+    throw new Error(
+      `This directory is not an OpenJob host (missing: ${missing.join(", ")}). Run openjob in the installed workspace instead.`,
+    )
+  }
+
   for (const dir of [
     "cv",
     "cover_letters",
@@ -135,8 +148,7 @@ export async function scaffoldUser(root: string, name: string): Promise<string> 
   // Per-user framework copy: commands, skills, agents and default_agent config
   // live inside the user directory, so /setup personalizes only this user's
   // profile and no state is shared between users.
-  const framework = FRAMEWORK_SOURCES.map((source) => path.join(root, source)).find((source) => existsSync(source))
-  if (framework) await cp(framework, path.join(target, ".openjob"), { recursive: true })
+  await cp(framework!, path.join(target, ".openjob"), { recursive: true })
 
   await writeFile(path.join(target, "job_search_tracker.csv"), `${TRACKER_HEADER}\n`)
 

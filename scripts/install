@@ -274,7 +274,7 @@ if [[ -n "${WORKSPACE_DIR}" ]]; then
   echo "  cd ${WORKSPACE_DIR} && openjob"
   echo "                          # then /users → Add user… → /setup"
 else
-  echo "  openjob                 # run in any OpenJob host directory"
-  echo "                          # (the extracted template: ${RUNTIME_DIR}/workspace)"
+  echo "  openjob                 # run from anywhere; opens the installed workspace host"
+  echo "                          # (${RUNTIME_DIR}/workspace)"
   echo "  # inside the TUI: /users → Add user… → /setup"
 fi

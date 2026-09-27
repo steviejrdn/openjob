@@ -59,8 +59,13 @@ openjob
 The TUI switches into `users/<name>/`; everything below runs there. Until the
 first user exists, the host home screen shows a "No workspace yet — run /users
 to create one" hint and the built-in Build agent; inside a user workspace the
-agent is OpenJob. From an installed release, run `openjob` in
-`~/.local/share/openjob/workspace` and create a user the same way.
+agent is OpenJob.
+
+With the installed binary you do not need to `cd` anywhere: `openjob` from any
+directory opens the installed host workspace
+(`~/.local/share/openjob/workspace`), so `/users` always lists the same users.
+Running `openjob` inside a user workspace keeps you in that user. From a source
+checkout, run `./scripts/openjob` in the repo root (the repo is the host).
 
 > [!IMPORTANT]
 > `/setup` (step 3 below) writes your personal data (name, contact details, employment history, salary expectations) into `users/<name>/`, which the host repository gitignores. Keep any personal files you add outside `users/` private, and never push them to a public remote.
