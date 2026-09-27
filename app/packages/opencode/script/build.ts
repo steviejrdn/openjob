@@ -255,12 +255,9 @@ if (Script.release) {
   await $`cp -r ../../../.openjob ${workspace}/.openjob`
   await $`cp -r ../../../.agents ${workspace}/.agents`
   await $`cp -r ../../../tools ${workspace}/tools`
-  await $`cp -r ../../../cv ${workspace}/cv`
-  await $`cp -r ../../../cover_letters ${workspace}/cover_letters`
-  await $`cp -r ../../../templates ${workspace}/templates`
-  await $`cp -r ../../../documents ${workspace}/documents`
+  await $`cp -r ../../../fonts ${workspace}/fonts`
+  await $`cp -r ../../../scaffold/. ${workspace}/`
   await $`cp ../../../salary_lookup.py ${workspace}/salary_lookup.py`
-  await $`cp ../../../AGENTS.md.example ${workspace}/AGENTS.md.example`
   await $`cp ../../../openjob.json ${workspace}/openjob.json`
   await $`cp ../../../SECURITY.md ${workspace}/SECURITY.md`
   await $`mkdir -p ${workspace}/job_scraper ${workspace}/upskill ${workspace}/company_research`

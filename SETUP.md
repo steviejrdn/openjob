@@ -79,22 +79,7 @@ Quick smoke tests after setup:
 ```bash
 cd cv && lualatex -interaction=nonstopmode -halt-on-error main_example.tex && cd ..
 
-SMOKE_DIR="$(mktemp -d /tmp/ai-job-cover-smoke.XXXXXX)"
-cp -R cover_letters/cover.cls cover_letters/OpenFonts "$SMOKE_DIR/"
-cat >"$SMOKE_DIR/cover_smoke.tex" <<'EOF'
-\documentclass[]{cover}
-\begin{document}
-\namesection{Test}{Candidate}{test@example.com}
-\companyname{Example Company}
-\companyaddress{123 Hiring Street\\Example City}
-\currentdate{\today}
-\lettercontent{Dear Hiring Manager,}
-\lettercontent{This smoke test verifies that xelatex can load cover.cls and the bundled fonts.}
-\closing{Sincerely,}
-\signature{Test Candidate}
-\end{document}
-EOF
-(cd "$SMOKE_DIR" && xelatex -interaction=nonstopmode -halt-on-error cover_smoke.tex)
+cd cover_letters && xelatex -interaction=nonstopmode -halt-on-error cover_example.tex && cd ..
 ```
 
 #### Windows: Basic MiKTeX
@@ -122,23 +107,7 @@ Quick smoke tests after setup (PowerShell):
 
 ```powershell
 Set-Location cv; lualatex -interaction=nonstopmode -halt-on-error main_example.tex; Set-Location ..
-
-$SmokeDir = New-Item -ItemType Directory -Path (Join-Path $env:TEMP "ai-job-cover-smoke-$(Get-Random)")
-Copy-Item cover_letters\cover.cls, cover_letters\OpenFonts -Destination $SmokeDir -Recurse
-@'
-\documentclass[]{cover}
-\begin{document}
-\namesection{Test}{Candidate}{test@example.com}
-\companyname{Example Company}
-\companyaddress{123 Hiring Street\\Example City}
-\currentdate{\today}
-\lettercontent{Dear Hiring Manager,}
-\lettercontent{This smoke test verifies that xelatex can load cover.cls and the bundled fonts.}
-\closing{Sincerely,}
-\signature{Test Candidate}
-\end{document}
-'@ | Set-Content (Join-Path $SmokeDir "cover_smoke.tex")
-Push-Location $SmokeDir; xelatex -interaction=nonstopmode -halt-on-error cover_smoke.tex; Pop-Location
+Set-Location cover_letters; xelatex -interaction=nonstopmode -halt-on-error cover_example.tex; Set-Location ..
 ```
 
 ### Optional: ATS text extraction (pypdf, then pdftotext)
@@ -314,8 +283,8 @@ Make sure Bun is installed and you ran `bun install` in each CLI directory. The 
 
 ### LaTeX compilation errors
 - CV: uses `lualatex` (pdflatex often fails on modern MiKTeX with `fontawesome5` font-expansion errors; lualatex handles the same sources cleanly)
-- Cover letter: uses `xelatex` (for custom fonts in `OpenFonts/fonts/`)
+- Cover letter: uses `xelatex` (for the Lato `fontspec` fonts in `cover.cls`)
 - Make sure your LaTeX distribution includes the `moderncv` package
 
 ### Fonts not found in cover letter
-The cover letter template expects fonts in `cover_letters/OpenFonts/fonts/`. Make sure this directory exists and contains the Lato and Raleway font files.
+The CV and cover letter templates expect the shared Lato fonts at `fonts/lato/`, linked into each workspace as `fonts/`. The fonts ship with the repo (SIL Open Font License — see `fonts/README.md`), so a fresh workspace only needs the `fonts` link present; re-run the installer or create it manually with `ln -s ../../fonts fonts` if it is missing.
