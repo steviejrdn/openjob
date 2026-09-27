@@ -70,7 +70,7 @@ export function resolveThreadDirectory(
 ) {
   const root = Filesystem.resolve(envPWD ?? cwd)
   if (project) return Filesystem.resolve(path.isAbsolute(project) ? project : path.join(root, project))
-  return Filesystem.resolve(cwd)
+  return Filesystem.resolve(envPWD ?? cwd)
 }
 
 export const TuiThreadCommand = cmd({

@@ -9,4 +9,5 @@ export const InstallationChannel = typeof OPENCODE_CHANNEL === "string" ? OPENCO
 export const InstallationLocal = InstallationChannel === "local"
 
 /** User-facing OpenJob release version (injected by the build, e.g. "0.1.0"). */
-export const OpenJobVersion = typeof OPENJOB_VERSION === "string" ? OPENJOB_VERSION : "dev"
+export const OpenJobVersion =
+  (typeof OPENJOB_VERSION === "string" ? OPENJOB_VERSION : undefined) ?? process.env["OPENJOB_VERSION"] ?? "dev"
