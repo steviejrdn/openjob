@@ -10,6 +10,7 @@ import { useToast } from "../ui/toast"
 import { useTheme } from "../context/theme"
 import { abbreviateHome } from "../runtime"
 import { errorMessage } from "../util/error"
+import { openExternal } from "../util/open-external"
 import { listUsers, scaffoldUser, usersRoot, writeActiveUser, type UserInfo } from "../util/users"
 
 type UserSelection = { type: "user"; user: UserInfo } | { type: "add" } | { type: "open" }
@@ -28,9 +29,8 @@ export function DialogUsers() {
   const [users, setUsers] = createSignal(listUsers(root()))
 
   function openFolder(directory: string) {
-    const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "explorer" : "xdg-open"
     try {
-      Bun.spawn([opener, directory], { stdio: ["ignore", "ignore", "ignore"] }).unref()
+      openExternal(directory).unref()
       dialog.clear()
     } catch (error) {
       toast.show({ message: `Could not open ${directory}: ${errorMessage(error)}`, variant: "error" })

@@ -6,6 +6,7 @@ import path from "node:path"
 import { spawn } from "node:child_process"
 import type { Stream } from "node:stream"
 import { resolveZedDbPath, resolveZedSelection } from "./editor-zed"
+import { realUserEnv } from "./util/open-external"
 
 type EditorStdio = "inherit" | "pipe" | "ignore" | number | Stream
 
@@ -37,6 +38,7 @@ export async function openEditor(input: { value: string; renderer: CliRenderer; 
         cwd: input.cwd && existsSync(input.cwd) ? input.cwd : process.cwd(),
         stdio: [input.stdin ?? "inherit", "inherit", "inherit"],
         shell: process.platform === "win32",
+        env: realUserEnv(),
       })
       child.on("error", reject)
       child.on("exit", (code, signal) => {
@@ -54,7 +56,7 @@ export async function openEditor(input: { value: string; renderer: CliRenderer; 
 }
 
 export function discoverEditorConnection(directory: string) {
-  const root = path.join(os.homedir(), ".claude", "ide")
+  const root = path.join(process.env["OPENJOB_REAL_HOME"] ?? os.userInfo().homedir, ".claude", "ide")
   const contains = (parent: string) => {
     const resolved = path.resolve(parent)
     const relative = path.relative(resolved, path.resolve(directory))

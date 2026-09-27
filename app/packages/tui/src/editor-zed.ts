@@ -185,10 +185,11 @@ function isZedActiveEditorRow(row: ZedEditorRow): row is ZedActiveEditorRow {
 }
 
 export function resolveZedDbPath() {
+  const home = process.env["OPENJOB_REAL_HOME"] ?? os.userInfo().homedir
   const candidates = [
     process.env.OPENCODE_ZED_DB,
-    path.join(os.homedir(), "Library", "Application Support", "Zed", "db", "0-stable", "db.sqlite"),
-    path.join(os.homedir(), ".local", "share", "zed", "db", "0-stable", "db.sqlite"),
+    path.join(home, "Library", "Application Support", "Zed", "db", "0-stable", "db.sqlite"),
+    path.join(home, ".local", "share", "zed", "db", "0-stable", "db.sqlite"),
   ].filter((item): item is string => Boolean(item))
 
   return candidates.find((item) => isFile(item))

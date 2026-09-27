@@ -37,6 +37,21 @@ consumeRuntimeDirArgument()
 const runtime = path.resolve(
   process.env["OPENJOB_RUNTIME_DIR"] ?? path.join(os.homedir(), ".local", "share", "openjob"),
 )
+
+// External programs (file managers, GUI editors) must run with the real user
+// HOME/XDG, otherwise they cannot read their own configuration and fall back
+// to default themes. Capture the real values before sandboxing the process.
+const realHome = process.env["OPENJOB_REAL_HOME"] ?? process.env["HOME"] ?? os.userInfo().homedir
+process.env["OPENJOB_REAL_HOME"] = realHome
+process.env["OPENJOB_REAL_XDG_CONFIG_HOME"] =
+  process.env["XDG_CONFIG_HOME"] ?? path.join(realHome, ".config")
+process.env["OPENJOB_REAL_XDG_DATA_HOME"] =
+  process.env["XDG_DATA_HOME"] ?? path.join(realHome, ".local", "share")
+process.env["OPENJOB_REAL_XDG_STATE_HOME"] =
+  process.env["XDG_STATE_HOME"] ?? path.join(realHome, ".local", "state")
+process.env["OPENJOB_REAL_XDG_CACHE_HOME"] = process.env["XDG_CACHE_HOME"] ?? path.join(realHome, ".cache")
+if (process.env["XDG_RUNTIME_DIR"]) process.env["OPENJOB_REAL_XDG_RUNTIME_DIR"] = process.env["XDG_RUNTIME_DIR"]
+
 process.env["OPENJOB_RUNTIME_DIR"] = runtime
 process.env["HOME"] = path.join(runtime, "home")
 process.env["XDG_CONFIG_HOME"] = path.join(runtime, "config")
