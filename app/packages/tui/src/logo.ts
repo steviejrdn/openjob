@@ -2,10 +2,10 @@
 // understands. The home screen shows `openjobAscii` on wide terminals and the
 // compact fallback below it otherwise.
 export const openjobAscii = [
-  "▄▄▄▄ ▄▄▄▄ ▄▄▄▄ █  █ ▄▄▄▄ ▄▄▄▄ ▄▄▄▄",
-  "█  █ █  █ █    █▄ █    █ █  █ █  █",
-  "█  █ █▀▀▀ █▀▀▀ █ ▀█ █  █ █  █ █▀▀▄",
-  "▀▀▀▀ █    ▀▀▀▀ █  █ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀",
+  "▄▄▄▄ ▄▄▄▄ ▄▄▄▄ ▄▄▄  ▄▄▄▄ ▄▄▄▄ █▄▄▄",
+  "█  █ █  █ █  █ █  █    █ █  █ █  █",
+  "█  █ █  █ █▀▀▀ █  █ ▄  █ █  █ █  █",
+  "▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▄▄▀ ▀▀▀▀ ▀▀▀▀",
 ] as const
 
 // Compact rail mark (OJB) for narrow terminals and future sidebars.
