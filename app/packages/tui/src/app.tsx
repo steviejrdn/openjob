@@ -504,6 +504,15 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         })
       })
       .catch(() => {})
+    const welcome = kv.get("openjob_welcome")
+    if (typeof welcome === "string" && welcome) {
+      kv.set("openjob_welcome", "")
+      toast.show({
+        variant: "info",
+        message: `Workspace ready: ${welcome} — put your CV and documents in documents/`,
+        duration: 20000,
+      })
+    }
   })
 
   let continued = false

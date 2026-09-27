@@ -3,11 +3,10 @@ import { UI } from "../ui"
 import * as prompts from "@clack/prompts"
 import { Installation } from "../../installation"
 import { Global } from "@opencode-ai/core/global"
+import { hostDirectory } from "@opencode-ai/core/installation/host"
 import fs from "fs/promises"
 import path from "path"
 import os from "os"
-import { Filesystem } from "@/util/filesystem"
-import { Process } from "@/util/process"
 
 interface UninstallArgs {
   keepConfig: boolean
@@ -18,8 +17,8 @@ interface UninstallArgs {
 
 interface RemovalTargets {
   directories: Array<{ path: string; label: string; keep: boolean }>
-  shellConfig: string | null
   binary: string | null
+  method: Installation.Method
 }
 
 export const UninstallCommand = {
@@ -36,7 +35,7 @@ export const UninstallCommand = {
       .option("keep-data", {
         alias: "d",
         type: "boolean",
-        describe: "keep session data and snapshots",
+        describe: "keep the workspace and session data (profile, CVs, documents)",
         default: false,
       })
       .option("dry-run", {
@@ -55,14 +54,14 @@ export const UninstallCommand = {
     UI.empty()
     UI.println(UI.logo("  "))
     UI.empty()
-    prompts.intro("Uninstall OpenCode")
+    prompts.intro("Uninstall OpenJob")
 
     const method = await Installation.method()
     prompts.log.info(`Installation method: ${method}`)
 
     const targets = await collectRemovalTargets(args, method)
 
-    await showRemovalSummary(targets, method)
+    await showRemovalSummary(targets)
 
     if (!args.force && !args.dryRun) {
       const confirm = await prompts.confirm({
@@ -81,27 +80,31 @@ export const UninstallCommand = {
       return
     }
 
-    await executeUninstall(method, targets)
+    await executeUninstall(targets)
 
     prompts.outro("Done")
   },
 }
 
 async function collectRemovalTargets(args: UninstallArgs, method: Installation.Method): Promise<RemovalTargets> {
+  const host = hostDirectory()
   const directories: RemovalTargets["directories"] = [
+    ...(host ? [{ path: host, label: "Workspace (profile, CVs, documents)", keep: args.keepData }] : []),
     { path: Global.Path.data, label: "Data", keep: args.keepData },
     { path: Global.Path.cache, label: "Cache", keep: false },
     { path: Global.Path.config, label: "Config", keep: args.keepConfig },
     { path: Global.Path.state, label: "State", keep: false },
+    { path: Global.Path.log, label: "Logs", keep: false },
+    { path: Global.Path.tmp, label: "Temp", keep: false },
+    { path: path.join(Global.Path.runtime, "home"), label: "Runtime home", keep: false },
   ]
 
-  const shellConfig = method === "curl" ? await getShellConfigFile() : null
   const binary = method === "curl" ? process.execPath : null
 
-  return { directories, shellConfig, binary }
+  return { directories, binary, method }
 }
 
-async function showRemovalSummary(targets: RemovalTargets, method: Installation.Method) {
+async function showRemovalSummary(targets: RemovalTargets) {
   prompts.log.message("The following will be removed:")
 
   for (const dir of targets.directories) {
@@ -123,31 +126,18 @@ async function showRemovalSummary(targets: RemovalTargets, method: Installation.
     prompts.log.info(`  ✓ Binary: ${shortenPath(targets.binary)}`)
   }
 
-  if (targets.shellConfig) {
-    prompts.log.info(`  ✓ Shell PATH in ${shortenPath(targets.shellConfig)}`)
-  }
-
-  if (method !== "curl" && method !== "unknown") {
-    const cmds: Record<string, string> = {
-      npm: "npm uninstall -g opencode-ai",
-      pnpm: "pnpm uninstall -g opencode-ai",
-      bun: "bun remove -g opencode-ai",
-      yarn: "yarn global remove opencode-ai",
-      brew: "brew uninstall opencode",
-      choco: "choco uninstall opencode",
-      scoop: "scoop uninstall opencode",
-    }
-    prompts.log.info(`  ✓ Package: ${cmds[method] || method}`)
+  if (targets.method !== "curl" && targets.method !== "unknown") {
+    prompts.log.info(`  ✓ Package: remove it with ${targets.method} (it was not installed by the OpenJob installer)`)
   }
 }
 
-async function executeUninstall(method: Installation.Method, targets: RemovalTargets) {
+async function executeUninstall(targets: RemovalTargets) {
   const spinner = prompts.spinner()
   const errors: string[] = []
 
   for (const dir of targets.directories) {
     if (dir.keep) {
-      prompts.log.step(`Skipping ${dir.label} (--keep-${dir.label.toLowerCase()})`)
+      prompts.log.step(`Skipping ${dir.label} (--keep-${dir.label.startsWith("Workspace") ? "data" : dir.label.toLowerCase()})`)
       continue
     }
 
@@ -167,56 +157,16 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
     spinner.stop(`Removed ${dir.label}`)
   }
 
-  if (targets.shellConfig) {
-    spinner.start("Cleaning shell config...")
-    const err = await cleanShellConfig(targets.shellConfig).catch((e) => e)
-    if (err) {
-      spinner.stop("Failed to clean shell config", 1)
-      errors.push(`Shell config: ${err.message}`)
-    } else {
-      spinner.stop("Cleaned shell config")
-    }
-  }
+  // Remove the runtime directory itself when nothing is left in it.
+  await fs.rmdir(Global.Path.runtime).catch(() => {})
 
-  if (method !== "curl" && method !== "unknown") {
-    const cmds: Record<string, string[]> = {
-      npm: ["npm", "uninstall", "-g", "opencode-ai"],
-      pnpm: ["pnpm", "uninstall", "-g", "opencode-ai"],
-      bun: ["bun", "remove", "-g", "opencode-ai"],
-      yarn: ["yarn", "global", "remove", "opencode-ai"],
-      brew: ["brew", "uninstall", "opencode"],
-      choco: ["choco", "uninstall", "opencode"],
-      scoop: ["scoop", "uninstall", "opencode"],
-    }
-
-    const cmd = cmds[method]
-    if (cmd) {
-      spinner.start(`Running ${cmd.join(" ")}...`)
-      const result = await Process.run(method === "choco" ? ["choco", "uninstall", "opencode", "-y", "-r"] : cmd, {
-        nothrow: true,
-      })
-      if (result.code !== 0) {
-        spinner.stop(`Package manager uninstall failed: exit code ${result.code}`, 1)
-        const text = `${result.stdout.toString("utf8")}\n${result.stderr.toString("utf8")}`
-        if (method === "choco" && text.includes("not running from an elevated command shell")) {
-          prompts.log.warn(`You may need to run '${cmd.join(" ")}' from an elevated command shell`)
-        } else {
-          prompts.log.warn(`You may need to run manually: ${cmd.join(" ")}`)
-        }
-      } else {
-        spinner.stop("Package removed")
-      }
-    }
-  }
-
-  if (method === "curl" && targets.binary) {
+  if (targets.binary) {
     UI.empty()
     prompts.log.message("To finish removing the binary, run:")
-    prompts.log.info(`  rm "${targets.binary}"`)
-
-    const binDir = path.dirname(targets.binary)
-    if (binDir.includes(".opencode")) {
-      prompts.log.info(`  rmdir "${binDir}" 2>/dev/null`)
+    if (process.platform === "win32") {
+      prompts.log.info(`  Remove-Item "${targets.binary}"`)
+    } else {
+      prompts.log.info(`  rm "${targets.binary}"`)
     }
   }
 
@@ -229,89 +179,7 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
   }
 
   UI.empty()
-  prompts.log.success("Thank you for using OpenCode!")
-}
-
-async function getShellConfigFile(): Promise<string | null> {
-  const shell = path.basename(process.env.SHELL || "bash")
-  const home = os.homedir()
-  const xdgConfig = process.env.XDG_CONFIG_HOME || path.join(home, ".config")
-
-  const configFiles: Record<string, string[]> = {
-    fish: [path.join(xdgConfig, "fish", "config.fish")],
-    zsh: [
-      path.join(home, ".zshrc"),
-      path.join(home, ".zshenv"),
-      path.join(xdgConfig, "zsh", ".zshrc"),
-      path.join(xdgConfig, "zsh", ".zshenv"),
-    ],
-    bash: [
-      path.join(home, ".bashrc"),
-      path.join(home, ".bash_profile"),
-      path.join(home, ".profile"),
-      path.join(xdgConfig, "bash", ".bashrc"),
-      path.join(xdgConfig, "bash", ".bash_profile"),
-    ],
-    ash: [path.join(home, ".ashrc"), path.join(home, ".profile")],
-    sh: [path.join(home, ".profile")],
-  }
-
-  const candidates = configFiles[shell] || configFiles.bash
-
-  for (const file of candidates) {
-    const exists = await fs
-      .access(file)
-      .then(() => true)
-      .catch(() => false)
-    if (!exists) continue
-
-    const content = await Filesystem.readText(file).catch(() => "")
-    if (content.includes("# opencode") || content.includes(".opencode/bin")) {
-      return file
-    }
-  }
-
-  return null
-}
-
-async function cleanShellConfig(file: string) {
-  const content = await Filesystem.readText(file)
-  const lines = content.split("\n")
-
-  const filtered: string[] = []
-  let skip = false
-
-  for (const line of lines) {
-    const trimmed = line.trim()
-
-    if (trimmed === "# opencode") {
-      skip = true
-      continue
-    }
-
-    if (skip) {
-      skip = false
-      if (trimmed.includes(".opencode/bin") || trimmed.includes("fish_add_path")) {
-        continue
-      }
-    }
-
-    if (
-      (trimmed.startsWith("export PATH=") && trimmed.includes(".opencode/bin")) ||
-      (trimmed.startsWith("fish_add_path") && trimmed.includes(".opencode"))
-    ) {
-      continue
-    }
-
-    filtered.push(line)
-  }
-
-  while (filtered.length > 0 && filtered[filtered.length - 1].trim() === "") {
-    filtered.pop()
-  }
-
-  const output = filtered.join("\n") + "\n"
-  await Filesystem.write(file, output)
+  prompts.log.success("Thank you for using OpenJob!")
 }
 
 async function getDirectorySize(dir: string): Promise<number> {

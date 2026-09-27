@@ -3,6 +3,7 @@ import path from "path"
 import { existsSync, readdirSync } from "node:fs"
 import { cp, mkdir } from "node:fs/promises"
 import { Flag } from "@opencode-ai/core/flag/flag"
+import { hostDirectory } from "@opencode-ai/core/installation/host"
 import { OpenJobVersion } from "@opencode-ai/core/installation/version"
 import { checkOpenJobUpdate } from "@opencode-ai/core/installation/openjob-update"
 import { UI } from "../ui"
@@ -28,9 +29,8 @@ const FRAMEWORK_FILES = [
 ]
 
 async function refreshUserFrameworks() {
-  const runtime = Flag.OPENJOB_RUNTIME_DIR
-  if (!runtime) return
-  const workspace = path.join(runtime, "workspace")
+  const workspace = hostDirectory()
+  if (!workspace) return
   const users = path.join(workspace, "users")
   const source = path.join(workspace, "scaffold", "openjob")
   if (!existsSync(users) || !existsSync(source)) return

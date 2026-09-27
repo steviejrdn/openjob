@@ -81,8 +81,8 @@ powershell -ExecutionPolicy Bypass -Command "curl.exe -fsSL https://raw.githubus
 OPENJOB_VERSION=0.1.0 bash <(curl -fsSL https://raw.githubusercontent.com/steviejrdn/openjob/main/scripts/install)
 ```
 
-The installer places the binary on your `PATH` and extracts the workspace
-template to `~/.local/share/openjob/workspace`.
+The installer places the binary on your `PATH` and installs the workspace host
+at **`~/OpenJob`** (auth, sessions, and cache stay in `~/.local/share/openjob`).
 
 ### Updating
 
@@ -134,12 +134,13 @@ run /users to create one" hint, and the agent is the built-in Build agent. It
 switches to the OpenJob agent once you are inside a user workspace.
 
 With the installed binary you do not need to `cd` anywhere: running `openjob`
-from any directory opens the installed host workspace
-(`~/.local/share/openjob/workspace`), so `/users` always shows the same list.
-Running `openjob` inside a user workspace keeps you in that user.
+from any directory opens the installed host at **`~/OpenJob`**, so `/users`
+always shows the same list. Running `openjob` inside a user workspace keeps you
+in that user. Your documents live in `~/OpenJob/users/<name>/documents/` — open
+it any time from `/users` → **Open workspace folder**.
 
-From an installed release, run `openjob` in the extracted workspace template
-(`~/.local/share/openjob/workspace`) and create a user the same way.
+From an installed release, run `openjob` from anywhere (it opens `~/OpenJob`)
+and create a user the same way.
 
 Personal data lives in `users/<name>/`, which is gitignored and never leaves
 your machine.

@@ -13,7 +13,7 @@ import type { GlobalEvent } from "@opencode-ai/sdk/v2"
 import type { EventSource } from "@opencode-ai/tui/context/sdk"
 import { writeHeapSnapshot } from "v8"
 import { ServerAuth } from "@/server/auth"
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { hostDirectory, isHostDirectory } from "@opencode-ai/core/installation/host"
 import { validateSession } from "../tui/validate-session"
 import { win32InstallCtrlCGuard } from "@opencode-ai/tui/terminal-win32"
 
@@ -76,7 +76,7 @@ export function resolveThreadDirectory(
   // other directory falls back to the installed host workspace so `openjob`
   // never creates a stray host in an arbitrary directory. A bare launch then
   // starts in the active user's directory (set from the /users dialog).
-  const host = isHostDirectory(root) ? root : (runtimeWorkspace() ?? root)
+  const host = isHostDirectory(root) ? root : (hostDirectory() ?? root)
   return activeUserDirectory(host) ?? host
 }
 
@@ -89,17 +89,6 @@ function activeUserDirectory(root: string): string | undefined {
   } catch {
     return undefined
   }
-}
-
-function isHostDirectory(directory: string): boolean {
-  return existsSync(path.join(directory, ".openjob")) || existsSync(path.join(directory, "scaffold", "openjob"))
-}
-
-function runtimeWorkspace(): string | undefined {
-  const runtime = Flag.OPENJOB_RUNTIME_DIR
-  if (!runtime) return undefined
-  const workspace = path.join(runtime, "workspace")
-  return isHostDirectory(workspace) ? workspace : undefined
 }
 
 // In dev the CLI runs as `bun <entry.ts>`; in a compiled binary argv[1] is a

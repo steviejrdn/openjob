@@ -135,8 +135,9 @@ openjob
 # inside the TUI: /users → Add user… → your name
 ```
 
-With the installed binary, `openjob` opens the installed host workspace from any
-directory, so this works without `cd`.
+With the installed binary, `openjob` opens the installed host (`~/OpenJob`) from
+any directory, so this works without `cd`. Your workspace and documents live in
+`~/OpenJob/users/<name>/` (documents in `documents/`).
 
 ## 3. Install job search CLI dependencies
 Run these from the host root (the `.agents/` portal CLIs are shared by every user).

@@ -62,10 +62,14 @@ to create one" hint and the built-in Build agent; inside a user workspace the
 agent is OpenJob.
 
 With the installed binary you do not need to `cd` anywhere: `openjob` from any
-directory opens the installed host workspace
-(`~/.local/share/openjob/workspace`), so `/users` always lists the same users.
-Running `openjob` inside a user workspace keeps you in that user. From a source
-checkout, run `./scripts/openjob` in the repo root (the repo is the host).
+directory opens the installed host at **`~/OpenJob`**, so `/users` always lists
+the same users. Running `openjob` inside a user workspace keeps you in that
+user. From a source checkout, run `./scripts/openjob` in the repo root (the repo
+is the host).
+
+Your files live in `~/OpenJob/users/<name>/` — put CVs, LinkedIn exports,
+diplomas, and reference letters in its `documents/` folder. `/users` →
+**Open workspace folder** opens it in your file manager.
 
 > [!IMPORTANT]
 > `/setup` (step 3 below) writes your personal data (name, contact details, employment history, salary expectations) into `users/<name>/`, which the host repository gitignores. Keep any personal files you add outside `users/` private, and never push them to a public remote.
