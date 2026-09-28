@@ -29,9 +29,13 @@ export function validUserName(name: string) {
   return USER_NAME.test(name) && name !== "." && name !== ".."
 }
 
-export function usersRoot(worktree: string | undefined, fallback: string): string {
-  if (worktree && worktree !== "/") return worktree
-  return fallback
+/**
+ * The host root that owns `users/`. A user workspace (`<host>/users/<name>`)
+ * climbs to its host, so `/users` always lists and creates under the host root
+ * no matter where the TUI is running.
+ */
+export function usersRoot(directory: string): string {
+  return existsSync(path.join(directory, ".openjob")) ? path.dirname(path.dirname(directory)) : directory
 }
 
 export function usersDirectory(root: string) {

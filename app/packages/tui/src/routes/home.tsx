@@ -47,7 +47,7 @@ export function Home() {
   // workspace. Inside a user directory `.openjob` exists, so this stays hidden.
   const needsUser = (() => {
     if (existsSync(path.join(paths.cwd, ".openjob"))) return false
-    const root = usersRoot(project.instance.path().worktree, project.instance.directory() || paths.cwd)
+    const root = usersRoot(project.instance.directory() || paths.cwd)
     return listUsers(root).length === 0
   })()
   const promptMaxWidth = createMemo(() => {

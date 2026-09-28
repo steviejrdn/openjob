@@ -92,7 +92,9 @@ Upstream docs and infrastructure that would confuse the product surface:
   the TUI in another directory; rebuilding the renderer in place crashes Bun).
   A bare `openjob` (or any launch inside `users/<name>`) resolves to the host
   root, never to the active user automatically; `/users` re-execs with an
-  explicit directory. Each user gets its own `.openjob` framework copy from
-  `scaffold/openjob` (repo layout), and `users/` is gitignored.
+  explicit directory, and always lists and creates users under the host root
+  even when opened from inside a user workspace. Each user gets its own
+  `.openjob` framework copy from `scaffold/openjob` (repo layout), and `users/`
+  is gitignored.
 - The built-in command palette/slash surface is trimmed via
   `packages/tui/src/prompt/commands.ts`.

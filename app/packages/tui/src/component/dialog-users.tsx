@@ -25,7 +25,7 @@ export function DialogUsers() {
   const { theme } = useTheme()
   onMount(() => dialog.setSize("large"))
 
-  const root = createMemo(() => usersRoot(project.instance.path().worktree, project.instance.directory() || paths.cwd))
+  const root = createMemo(() => usersRoot(project.instance.directory() || paths.cwd))
   const [users, setUsers] = createSignal(listUsers(root()))
 
   function openFolder(directory: string) {
