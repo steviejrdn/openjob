@@ -11,30 +11,28 @@ export function Logo() {
   const wideEnough = () => dimensions().width >= 46
 
   return (
-    <box alignItems="flex-start" aria-label="OpenJob">
-      <box flexDirection="row" gap={2} alignItems="flex-end">
-        <Show
-          when={wideEnough()}
-          fallback={
-            <text fg={theme.text} attributes={TextAttributes.BOLD} selectable={false}>
-              OPENJOB
-            </text>
-          }
-        >
-          <box>
-            <For each={openjobAscii}>
-              {(line) => (
-                <text fg={theme.text} selectable={false} wrapMode="none">
-                  {line}
-                </text>
-              )}
-            </For>
-          </box>
-        </Show>
-        <text fg={theme.textMuted} selectable={false}>
-          {OpenJobVersion === "dev" ? "dev" : `v${OpenJobVersion}`}
-        </text>
-      </box>
+    <box alignItems="center" aria-label="OpenJob">
+      <Show
+        when={wideEnough()}
+        fallback={
+          <text fg={theme.text} attributes={TextAttributes.BOLD} selectable={false}>
+            OPENJOB
+          </text>
+        }
+      >
+        <box>
+          <For each={openjobAscii}>
+            {(line) => (
+              <text fg={theme.text} selectable={false} wrapMode="none">
+                {line}
+              </text>
+            )}
+          </For>
+        </box>
+      </Show>
+      <text fg={theme.textMuted} selectable={false} marginTop={1}>
+        {OpenJobVersion === "dev" ? "dev" : `v${OpenJobVersion}`}
+      </text>
     </box>
   )
 }
