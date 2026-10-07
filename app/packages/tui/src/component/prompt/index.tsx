@@ -42,6 +42,8 @@ import type { AssistantMessage, FilePart, UserMessage } from "@opencode-ai/sdk/v
 import { Locale } from "../../util/locale"
 import { errorMessage } from "../../util/error"
 import { formatDuration } from "../../util/format"
+import { openExternal } from "../../util/open-external"
+import { isUserWorkspace } from "../../util/users"
 import { createColors, createFrames } from "../../ui/spinner"
 import { useDialog } from "../../ui/dialog"
 import { DialogProvider as DialogProviderConnect } from "../dialog-provider"
@@ -165,7 +167,6 @@ export function Prompt(props: PromptProps) {
   const history = usePromptHistory()
   const stash = usePromptStash()
   const keymap = useOpencodeKeymap()
-  const agentShortcut = useCommandShortcut("agent.cycle")
   const paletteShortcut = useCommandShortcut("command.palette.show")
   const renderer = useRenderer()
   const exit = useExit()
@@ -552,6 +553,34 @@ export function Prompt(props: PromptProps) {
         slashName: "move",
         run: () => {
           move.open()
+        },
+      },
+      {
+        title: "Expand profile",
+        desc: "Discover competencies from your documents and online presence",
+        name: "openjob.expand_profile",
+        category: "OpenJob",
+        hidden: !isUserWorkspace(project.instance.directory() || paths.cwd),
+        run: () => {
+          input.setText("/expand ")
+          setStore("prompt", { input: "/expand ", parts: [] })
+          input.gotoBufferEnd()
+          dialog.clear()
+        },
+      },
+      {
+        title: "Open workspace folder",
+        desc: "Open this workspace in the file manager",
+        name: "openjob.open_workspace_folder",
+        category: "OpenJob",
+        hidden: !isUserWorkspace(project.instance.directory() || paths.cwd),
+        run: () => {
+          try {
+            openExternal(project.instance.directory() || paths.cwd).unref()
+          } catch (error) {
+            toast.show({ message: errorMessage(error), variant: "error" })
+          }
+          dialog.clear()
         },
       },
     ]
@@ -1671,11 +1700,6 @@ export function Prompt(props: PromptProps) {
                           {[item().context, item().cost].filter(Boolean).join(" · ")}
                         </text>
                       )}
-                    </Match>
-                    <Match when={true}>
-                      <text fg={theme.text}>
-                        {agentShortcut()} <span style={{ fg: theme.textMuted }}>agents</span>
-                      </text>
                     </Match>
                   </Switch>
                   <text fg={theme.text}>

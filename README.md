@@ -48,7 +48,7 @@ every command grounds its claims against. Run `/setup` once, then `/scrape`,
 | `/upskill` | Turn role gaps into a learning plan |
 | `/html-report` | Turn the tracker into a shareable report |
 | `/add-template` | Register a custom CV/cover template |
-| `/add-portal` | Generate a new portal search CLI |
+| Add job portal *(host mode)* | Generate a new portal search CLI |
 | `/reset` | Clear personal data from the workspace |
 
 ## Prerequisites
@@ -152,7 +152,7 @@ Each user gets a `users/<name>/` directory with their own profile, CV,
 documents, tracker, scrape state, and a copy of the framework (`.openjob/`
 commands, skills, agents), so `/setup` personalizes only that user's files.
 `tools/`, `.agents/` (portal CLIs) and `fonts/` are shared from the host
-through symlinks; portal skills added with `/add-portal` are visible to every
+through symlinks; portal skills added via Add job portal are visible to every
 user.
 
 - `/users` inside the TUI lists users, switches to another one (the TUI

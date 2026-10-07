@@ -142,7 +142,7 @@ their own `AGENTS.md`, `cv/`, `cover_letters/`, `documents/`, tracker, scrape
 state, and a copy of the framework (`.openjob/` commands, skills, agents), so
 `/setup` personalizes only that user's profile. `tools/`, `.agents/` (portal
 CLIs) and `fonts/` are shared from the host through symlinks — portal skills
-added with `/add-portal` are therefore visible to every user.
+added via Add job portal are therefore visible to every user.
 
 - Selecting a user makes them the active user and relaunches the TUI in their
   directory, so sessions and context stay isolated per user. The active marker
@@ -180,7 +180,7 @@ version, or `--no-framework` to skip the per-user refresh.
 - **`/upskill`** analyzes the gap between your profile, your tracked job postings, and your ranked-but-untracked postings (`/rank`'s recorded gaps in `seen_jobs.json`) — or a single posting via `/upskill <URL>`. Produces a prioritized heatmap of skill gaps and a learning plan with web-searched study resources and time estimates. Useful for career planning between applications.
 - **`/html-report`** generates a self-contained HTML dashboard from `job_search_tracker.csv` and the application archives — stat cards, status/sector/channel/funnel charts (inline SVG, no external dependencies), and a filterable applications table. Opens directly in a browser, fully offline. Re-run it any time after `/apply` or `/outcome` adds new entries.
 - **`/add-template`** registers your own CV or cover letter template (LaTeX, Typst, or another toolchain) in place of the stock ones. It captures the template's instructions (source extension, compile command, fonts, style rules, page limit), runs a mandatory test compile, and wires the template into `/apply`. See [Custom templates](#custom-templates) below.
-- **`/add-portal`** generates a job-portal search skill for a job board in your market. It investigates the portal (search URL pattern, result structure, access rules), scaffolds the CLI skill from the same structure as the shipped ones, and test-runs a live query before registering. See [Job search tools](#job-search-tools) below.
+- **Add job portal** (host mode, `ctrl+p`) generates a job-portal search skill for a job board in your market. It investigates the portal (search URL pattern, result structure, access rules), scaffolds the CLI skill from the same structure as the shipped ones, and test-runs a live query before registering. See [Job search tools](#job-search-tools) below.
 
 `/reset` is also available, see [Starting over](#starting-over) below.
 
@@ -195,7 +195,6 @@ users/<name>/                          # your workspace, created from /users
 │   │   ├── setup.md                   # /setup onboarding (documents folder, CV import, or interview)
 │   │   ├── expand.md                  # /expand competency enrichment from documents and online presence
 │   │   ├── add-template.md            # /add-template register custom templates (LaTeX, Typst, ...)
-│   │   ├── add-portal.md              # /add-portal generate a job-portal search skill for your market
 │   │   ├── rank.md                    # /rank triage scraped jobs into a ranked shortlist
 │   │   ├── outcome.md                 # /outcome record application results, archive materials
 │   │   ├── interview.md               # /interview stage-specific prep pack + mock interview
@@ -323,11 +322,7 @@ If you prefer doing it by hand, the manual route still works: update the guidanc
 
 ### Job search tools
 
-The four Danish CLI tools in `.agents/skills/` (Jobbank, Jobdanmark, Jobindex, Jobnet) demonstrate the pattern for building a job-portal integration for a specific market. If you're in a different country, run:
-
-```
-/add-portal
-```
+The four Danish CLI tools in `.agents/skills/` (Jobbank, Jobdanmark, Jobindex, Jobnet) demonstrate the pattern for building a job-portal integration for a specific market. If you're in a different country, open the **host** workspace, press `ctrl+p`, and pick **Add job portal** (portals live in the shared `.agents/`, so adding one there covers every user):
 
 Give it your local job board's URL. The command investigates the portal (search-URL pattern, result-page structure, robots.txt/access rules), scaffolds a CLI skill with the same structure, commands, and output contract as the shipped ones, and test-runs a live query before registering anything. Auth-walled portals are declined, and portals with restrictive terms get a prominent personal-use-only warning in the generated skill. The generated skill is market-specific and lives in your local `.agents/skills/`; the generator itself is the universal part.
 
@@ -340,7 +335,7 @@ For **country-agnostic** starting points outside Denmark, the repo ships two por
 
 Everything above adds up to an extension model, so here it is stated plainly. The framework has three extension points, and none of them require modifying the core workflow:
 
-1. **Portal skills** - the module system for job boards. Every `*-search` skill is a self-contained folder under `.agents/skills/` with the same contract (a `search`/`detail` CLI, `--format json|table|plain` output, an `enabled:` flag in its `SKILL.md`, its own tests). `/scrape` auto-discovers any installed skill that follows the contract - nothing to register, nothing to wire up. `/add-portal` generates new ones.
+1. **Portal skills** - the module system for job boards. Every `*-search` skill is a self-contained folder under `.agents/skills/` with the same contract (a `search`/`detail` CLI, `--format json|table|plain` output, an `enabled:` flag in its `SKILL.md`, its own tests). `/scrape` auto-discovers any installed skill that follows the contract - nothing to register, nothing to wire up. Add job portal (host mode) generates new ones.
 2. **Document templates** - `/add-template` registers any CV or cover-letter toolchain that compiles to PDF from the command line, LaTeX or otherwise.
 3. **Evaluation criteria** - deal-breakers and preferences in your profile are free-form, and the evaluation rubric scores against whatever you put there. "Strong parental-leave terms", "minimum salary X per my union's scale", "no on-call" - each is one profile line, no code, and it carries real weight in `/rank` and `/apply` fit evaluations. Language is the one deal-breaker type with dedicated, structured handling: `/setup` captures every language you work in and your level (asked directly, or inferred from your CV/LinkedIn export) into a `Languages` table, and the Language Gate (`04-job-evaluation.md`) hard-rejects a posting that requires a language you haven't declared at all, while flagging - not auto-rejecting - one that asks for a higher level than you declared in a language you do work in, so a borderline case (a strict "fluent" bar against your own B1/B2, say) gets your judgment instead of a silent drop.
 

@@ -13,7 +13,8 @@ import { useData } from "../../context/data"
 import { getScrollAcceleration } from "../../util/scroll"
 import { useTuiPaths } from "../../context/runtime"
 import { useTuiConfig } from "../../config"
-import { isOpenJobSlashCommand } from "../../prompt/commands"
+import { isOpenJobServerSlashCommand, isOpenJobSlashCommand } from "../../prompt/commands"
+import { isUserWorkspace } from "../../util/users"
 import { useLocation } from "../../context/location"
 import { useTheme, selectedForeground } from "../../context/theme"
 import { SplitBorder } from "../../ui/border"
@@ -446,12 +447,14 @@ export function Autocomplete(props: {
   )
 
   const commands = createMemo((): AutocompleteOption[] => {
+    const userMode = isUserWorkspace(project.instance.directory() || paths.cwd)
     const results: AutocompleteOption[] = [...slashes()].filter((item) =>
-      isOpenJobSlashCommand(item.display.slice(1)),
+      isOpenJobSlashCommand(item.display.slice(1), userMode),
     )
 
     for (const serverCommand of sync.data.command) {
       if (serverCommand.source === "skill") continue
+      if (!isOpenJobServerSlashCommand(serverCommand.name, userMode)) continue
       const label = serverCommand.source === "mcp" ? ":mcp" : ""
       results.push({
         display: "/" + serverCommand.name + label,

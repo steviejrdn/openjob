@@ -1,5 +1,7 @@
 # /add-portal - Generate a Job-Portal Search Skill for Your Local Market
 
+Done when: the new portal skill typechecks, a live query returns populated results, and the skill is registered under `.agents/skills/`.
+
 You are helping the user build a job-portal search skill for a job board in their market. The repo ships worked examples of the pattern (four Danish portals plus the country-agnostic `linkedin-search` and `freehire-search`), and this command turns building an equivalent into a guided workflow: investigate the portal, scaffold the skill from the canonical structure, and test-run a live query before registering anything.
 
 The generator is **country-agnostic**: it works for any portal in any market and language. The skills it produces are typically market-specific and live in your local `.agents/skills/` (the generator is universal; its output is yours).
@@ -106,7 +108,7 @@ Never register a portal skill that has not returned real results. Markup assumpt
    ```bash
    bun run src/cli.ts search -q "<test query>" --limit 5 --format table
    ```
-3. Verify the results are real and complete: titles and companies are populated (not empty strings or HTML fragments), URLs resolve to the portal, dates parse. If fields come back null or garbled, fix the parsers in `helpers.ts` and re-run. Iterate until clean.
+3. Verify the results are real and complete: titles and companies are populated (not empty strings or HTML fragments), URLs resolve to the portal, dates parse. If fields come back null or garbled, fix the parsers in `helpers.ts` and re-run (max 3 attempts, then report what still fails).
 4. Take one `id` from the results and run `detail`:
    ```bash
    bun run src/cli.ts detail <id> --format plain
@@ -121,9 +123,7 @@ Do not proceed to Step 5 until search, detail, and tests all pass.
 
 ## Step 5: Register
 
-1. Ask whether the user wants the new portal added to their `/scrape` search strategy. If yes:
-   - The portal CLI itself is already picked up automatically by `/scrape` (it discovers `.agents/skills/*/SKILL.md`) — no further wiring is needed for CLI search/detail.
-   - Optionally add websearch/`site:` placeholder queries for that board in `.openjob/skills/job-scraper/search-queries.md` (use the `[YOUR_JOB_BOARD]` style placeholders already there) so the fallback path still covers the board if the CLI is unavailable.
+1. The portal CLI is already picked up automatically by `/scrape` (it discovers `.agents/skills/*/SKILL.md`), and because `.agents/` is shared, **every user sees the new portal** - no per-user file needs to change. The optional `site:` fallback lives in each user's own `search-queries.md`, so leave it alone.
 2. Remind the user to add the install line to their README for their own records:
    ```bash
    cd .agents/skills/<name>/cli && bun install && cd ../../../..

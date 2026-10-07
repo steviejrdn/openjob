@@ -13,6 +13,7 @@ import { ClipboardProvider, useClipboard } from "./context/clipboard"
 import { ExitProvider, useExit } from "./context/exit"
 import { EpilogueProvider } from "./context/epilogue"
 import * as Selection from "./util/selection"
+import { isUserWorkspace } from "./util/users"
 import { createCliRenderer, MouseButton } from "@opentui/core"
 import { RouteProvider, useRoute } from "./context/route"
 import {
@@ -587,6 +588,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
       {
         name: "session.list",
         title: "Switch session",
+        desc: "Switch or resume a session",
         category: "Session",
         suggested: sync.data.session.length > 0,
         slashName: "sessions",
@@ -598,6 +600,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
       {
         name: "session.new",
         title: "New session",
+        desc: "Start a new session",
         suggested: route.data.type === "session",
         category: "Session",
         slashName: "new",
@@ -964,10 +967,51 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         name: "users.list",
         title: "Users",
         category: "System",
-        slashName: "users",
-        slashAliases: ["user"],
+        hidden: isUserWorkspace(project.instance.directory()),
         run: () => {
-          dialog.replace(() => <DialogUsers />)
+          dialog.replace(() => <DialogUsers scope="host" />)
+        },
+      },
+      {
+        name: "users.switch",
+        title: "Switch user",
+        category: "System",
+        hidden: !isUserWorkspace(project.instance.directory()),
+        run: () => {
+          dialog.replace(() => <DialogUsers scope="user" />)
+        },
+      },
+      {
+        name: "openjob.add_portal",
+        title: "Add job portal",
+        category: "System",
+        hidden: isUserWorkspace(project.instance.directory()),
+        run: async () => {
+          const directory = project.instance.directory()
+          const agent = local.agent.current()
+          const model = local.model.current()
+          if (!agent || !model) return
+          const variant = local.model.variant.current()
+          const created = await sdk.client.session.create({
+            directory,
+            agent: agent.name,
+            model: { providerID: model.providerID, id: model.modelID, variant },
+          })
+          if (created.error || !created.data) {
+            toast.show({ message: "Could not start a session for /add-portal.", variant: "error" })
+            return
+          }
+          await sdk.client.session.command({
+            sessionID: created.data.id,
+            command: "add-portal",
+            arguments: "",
+            agent: agent.name,
+            model: `${model.providerID}/${model.modelID}`,
+            variant,
+            parts: [],
+          })
+          route.navigate({ type: "session", sessionID: created.data.id })
+          dialog.clear()
         },
       },
       {

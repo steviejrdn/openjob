@@ -1,7 +1,5 @@
 import { Prompt, type PromptRef } from "../component/prompt"
 import { createEffect, createMemo, createSignal, onMount, Show } from "solid-js"
-import { existsSync } from "node:fs"
-import path from "node:path"
 import { Logo } from "../component/logo"
 import { useSync } from "../context/sync"
 import { Toast } from "../ui/toast"
@@ -16,7 +14,9 @@ import { useTuiConfig } from "../config"
 import { useProject } from "../context/project"
 import { useTuiPaths } from "../context/runtime"
 import { useTheme } from "../context/theme"
-import { listUsers, usersRoot } from "../util/users"
+import { HomeUserPicker } from "../component/home-user-picker"
+import { isUserWorkspace } from "../util/users"
+import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { HomeSessionDestinationProvider } from "./home/session-destination"
 
 let once = false
@@ -43,13 +43,9 @@ export function Home() {
   const project = useProject()
   const paths = useTuiPaths()
   const { theme } = useTheme()
-  // A host directory with no users yet: show how to create the first
-  // workspace. Inside a user directory `.openjob` exists, so this stays hidden.
-  const needsUser = (() => {
-    if (existsSync(path.join(paths.cwd, ".openjob"))) return false
-    const root = usersRoot(project.instance.directory() || paths.cwd)
-    return listUsers(root).length === 0
-  })()
+  // Host mode is a launcher: it shows the user picker instead of a prompt, so
+  // there is no text box and no slash surface there.
+  const hostMode = createMemo(() => !isUserWorkspace(project.instance.directory() || paths.cwd))
   const promptMaxWidth = createMemo(() => {
     const configured = tuiConfig.prompt?.max_width
     if (configured === "auto") return Math.max(75, Math.floor(dimensions().width * 0.7))
@@ -97,17 +93,19 @@ export function Home() {
             <Logo />
           </pluginRuntime.Slot>
         </box>
-        <Show when={needsUser}>
-          <text fg={theme.textMuted} marginTop={1}>
-            No workspace yet — run <span style={{ fg: theme.primary }}>/users</span> to create one
-          </text>
+        <Show when={hostMode()}>
+          <text fg={theme.textMuted}>v{InstallationVersion}</text>
+          <box height={1} minHeight={0} flexShrink={1} />
+          <HomeUserPicker />
         </Show>
-        <box height={1} minHeight={0} flexShrink={1} />
-        <box width="100%" maxWidth={promptMaxWidth()} zIndex={1000} paddingTop={1} flexShrink={0}>
-          <pluginRuntime.Slot name="home_prompt" mode="replace" ref={bind}>
-            <Prompt ref={bind} right={<pluginRuntime.Slot name="home_prompt_right" />} placeholders={placeholder} />
-          </pluginRuntime.Slot>
-        </box>
+        <Show when={!hostMode()}>
+          <box height={1} minHeight={0} flexShrink={1} />
+          <box width="100%" maxWidth={promptMaxWidth()} zIndex={1000} paddingTop={1} flexShrink={0}>
+            <pluginRuntime.Slot name="home_prompt" mode="replace" ref={bind}>
+              <Prompt ref={bind} right={<pluginRuntime.Slot name="home_prompt_right" />} placeholders={placeholder} />
+            </pluginRuntime.Slot>
+          </box>
+        </Show>
         <pluginRuntime.Slot name="home_bottom" />
         <box flexGrow={1} minHeight={0} />
         <Toast />

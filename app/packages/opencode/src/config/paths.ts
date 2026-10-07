@@ -22,20 +22,33 @@ export const files = Effect.fn("ConfigPaths.projectFiles")(function* (
 
 export const directories = Effect.fn("ConfigPaths.directories")(function* (directory: string, worktree?: string) {
   const afs = yield* FSUtil.Service
-  return unique([
-    Global.Path.config,
-    ...(!Flag.OPENCODE_DISABLE_PROJECT_CONFIG
+  // A `.openjob` anywhere up-tree means we are inside a user workspace. In
+  // that case the host-level framework (shared commands such as add-portal) is
+  // deliberately NOT loaded: those are host-mode only.
+  const projectDirs = !Flag.OPENCODE_DISABLE_PROJECT_CONFIG
+    ? yield* afs.up({
+        targets: [".openjob"],
+        start: directory,
+        stop: worktree,
+      })
+    : []
+  const hostFramework =
+    !Flag.OPENCODE_DISABLE_PROJECT_CONFIG && projectDirs.length === 0
       ? yield* afs.up({
-          targets: [".openjob"],
+          targets: ["scaffold/host"],
           start: directory,
           stop: worktree,
         })
-      : []),
+      : []
+  return unique([
+    Global.Path.config,
+    ...projectDirs,
     ...(yield* afs.up({
       targets: [".openjob"],
       start: Global.Path.home,
       stop: Global.Path.home,
     })),
+    ...hostFramework,
     ...(Flag.OPENCODE_CONFIG_DIR ? [Flag.OPENCODE_CONFIG_DIR] : []),
   ])
 })

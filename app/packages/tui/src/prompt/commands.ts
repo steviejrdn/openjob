@@ -1,34 +1,36 @@
 /**
  * OpenJob's deliberately narrow command surface.
  *
- * Slash commands: only the built-in TUI slashes listed here are offered in the
- * `/` menu. Server-side commands from the workspace (`openjob.json`,
- * `.openjob/commands/`, skills) always pass through, so the job workflow keeps
- * working.
+ * Slash commands: host mode is a launcher with no prompt, so it has no slash
+ * commands. A user workspace keeps only the workflow shortcuts; every other
+ * command lives in the ctrl+p command palette.
+ *
+ * Server-side commands (`.openjob/commands/`) are gated by
+ * `isOpenJobServerSlashCommand`; `add-portal` is host-only and `expand` is
+ * palette-only.
  *
  * Palette: command ids listed below stay registered (keybinds and internal
  * callers keep resolving) but never render in the command palette.
  */
-export const OPENJOB_SLASH_ALLOWLIST = new Set([
-  "connect",
-  "provider",
-  "models",
-  "model",
-  "mo",
-  "help",
-  "new",
-  "clear",
-  "sessions",
-  "resume",
-  "continue",
-  "themes",
-  "theme",
-  "users",
-  "user",
-  "exit",
-  "quit",
-  "q",
-  "status",
+// Host mode is a launcher (no prompt), so it has no slash commands at all. A
+// user workspace keeps only the workflow shortcuts; every other command lives
+// in the ctrl+p palette.
+export const OPENJOB_SLASH_ALLOWLIST_HOST = new Set<string>([])
+export const OPENJOB_SLASH_ALLOWLIST_USER = new Set(["new", "sessions"])
+
+// Server commands (from `.openjob/commands`) that stay in the `/` menu inside a
+// user workspace. `add-portal` is host-only; `expand` is palette-only.
+export const OPENJOB_SERVER_SLASH_ALLOWLIST_USER = new Set([
+  "add-template",
+  "apply",
+  "html-report",
+  "interview",
+  "outcome",
+  "rank",
+  "reset",
+  "scrape",
+  "setup",
+  "upskill",
 ])
 
 export const OPENJOB_PALETTE_DENYLIST = new Set([
@@ -46,8 +48,6 @@ export const OPENJOB_PALETTE_DENYLIST = new Set([
   "diff.open",
   "workspace.list",
   "workspace.copy_path",
-  "variant.cycle",
-  "variant.list",
   "prompt.editor",
   "prompt.skills",
   "workspace.set",
@@ -61,8 +61,12 @@ export const OPENJOB_PALETTE_DENYLIST = new Set([
   "fork",
 ])
 
-export function isOpenJobSlashCommand(name: string) {
-  return OPENJOB_SLASH_ALLOWLIST.has(name)
+export function isOpenJobSlashCommand(name: string, userMode: boolean) {
+  return (userMode ? OPENJOB_SLASH_ALLOWLIST_USER : OPENJOB_SLASH_ALLOWLIST_HOST).has(name)
+}
+
+export function isOpenJobServerSlashCommand(name: string, userMode: boolean) {
+  return userMode && OPENJOB_SERVER_SLASH_ALLOWLIST_USER.has(name)
 }
 
 export function isOpenJobPaletteCommand(id: string) {

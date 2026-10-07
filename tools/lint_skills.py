@@ -102,7 +102,9 @@ def check_settings() -> None:
 
 def main() -> int:
     skills = sorted(ROOT.glob("scaffold/openjob/skills/*/SKILL.md")) + sorted(ROOT.glob(".agents/skills/*/SKILL.md"))
-    commands = sorted((ROOT / "scaffold" / "openjob" / "commands").glob("*.md"))
+    commands = sorted((ROOT / "scaffold" / "openjob" / "commands").glob("*.md")) + sorted(
+        (ROOT / "scaffold" / "host" / "commands").glob("*.md")
+    )
     if not skills:
         errors.append("no SKILL.md files found - glob roots are wrong or the tree moved")
     if not commands:
