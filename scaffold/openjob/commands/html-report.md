@@ -1,4 +1,10 @@
+---
+description: Generate an application tracker dashboard
+---
+
 # /html-report - Generate Application Tracker Dashboard
+
+Done when: a single self-contained `.html` dashboard is written and its path is reported.
 
 Generate a self-contained HTML dashboard from `job_search_tracker.csv` and the application archives under `documents/applications/`. The output is a single `.html` file — no server, no dependencies — that can be opened directly in a browser.
 

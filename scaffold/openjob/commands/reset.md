@@ -1,4 +1,10 @@
+---
+description: Reset profile data and start fresh
+---
+
 # /reset - Reset Candidate Profile Data
+
+Done when: the requested profile files are reset and the user is told to run `/setup` next.
 
 You are resetting parts of the job search framework back to a blank state so the user can start fresh with `/setup`.
 

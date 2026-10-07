@@ -16,6 +16,13 @@
       "python tools/robots_check.py*": "allow",
       "python3 tools/robots_check.py*": "allow",
       "python3 tools/lint_skills.py*": "allow",
+      "python tools/ledger.py*": "allow",
+      "python3 tools/ledger.py*": "allow",
+      "python tools/job_docs.py*": "allow",
+      "python3 tools/job_docs.py*": "allow",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "rg *": "allow",
       "pdftotext*": "allow"
     }
   },

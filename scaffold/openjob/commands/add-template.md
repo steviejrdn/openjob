@@ -1,4 +1,10 @@
+---
+description: Register a custom CV or cover-letter template
+---
+
 # /add-template - Register a Custom CV or Cover Letter Template
+
+Done when: the template compiles to PDF with its declared command and its ACTIVE-TEMPLATE block is written into the template skill file.
 
 You are helping the user register their own CV or cover letter template with the AI Job Search framework — LaTeX, Typst, or any other toolchain that compiles to PDF from the command line. The framework ships with moderncv (banking style) for CVs and a custom `cover.cls` for cover letters. This command lets the user swap in their own template: store the template files, capture usage instructions (source extension, compile command, fonts, style rules, page limits), verify the template compiles, and wire it into the `/apply` workflow so every future application uses it.
 

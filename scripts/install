@@ -271,7 +271,7 @@ fi
 
 if command -v python3 >/dev/null 2>&1; then
   echo "  Python detected: $(python3 --version 2>&1)"
-  echo "    Optional: pip install pypdf and/or Poppler pdftotext for /apply PDF verification"
+  echo "    Optional: pypdf or Poppler pdftotext for /apply's ATS check (self-detected; neither required)"
 else
   echo "  WARNING: Python 3.10+ not found. /rank, /apply, and /scrape helper tools will be limited."
   echo "           Install Python: https://www.python.org/downloads/"

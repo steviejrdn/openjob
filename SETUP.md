@@ -110,17 +110,16 @@ Set-Location cv; lualatex -interaction=nonstopmode -halt-on-error main_example.t
 Set-Location cover_letters; xelatex -interaction=nonstopmode -halt-on-error cover_example.tex; Set-Location ..
 ```
 
-### Optional: ATS text extraction (pypdf, then pdftotext)
+### Optional: ATS text extraction (pypdf or pdftotext)
 
 `/apply` runs an ATS parseability check on the compiled CV: it extracts the PDF's text layer and verifies contact details, reading order, and keyword coverage the way an applicant-tracking system sees them.
 
-The default extractor is **pypdf** (BSD, `pip install pypdf`). Poppler `pdftotext` remains an optional fallback:
+`tools/verify_pdf.py` selects whichever extractor is available at run time - no configuration needed:
 
-- **macOS:** `brew install poppler`
-- **Debian/Ubuntu:** `sudo apt install poppler-utils`
-- **Windows:** `choco install poppler`
+- **pypdf** (BSD): pure Python, `pip install pypdf` (or `uv tool install pypdf`)
+- **Poppler `pdftotext`**: `brew install poppler` (macOS), `sudo apt install poppler-utils` (Debian/Ubuntu), `choco install poppler` (Windows)
 
-If a command still uses `pdftotext -layout`, it must pass `-enc UTF-8` as well. If **neither** extractor is available, `/apply` skips the mechanical check with a warning and falls back to a visual keyword review — everything else works normally.
+Either one is sufficient. If **neither** is available, `/apply` skips the mechanical check with a warning and falls back to a visual keyword review — everything else works normally.
 
 ## 2. Workspace layout
 

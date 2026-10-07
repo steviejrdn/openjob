@@ -1,5 +1,7 @@
 # /expand - Competency Expansion from Documents and Online Presence
 
+Done when: newly discovered competencies are written into the profile files and summarized to the user.
+
 You are enriching the candidate profile by discovering competencies hidden in documents and public online presence. This command is additive only — it never modifies existing profile content, only extends it.
 
 Follow these steps **exactly in order**. Do not skip steps.

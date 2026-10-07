@@ -55,7 +55,7 @@ every command grounds its claims against. Run `/setup` once, then `/scrape`,
 
 - A 64-bit Linux, macOS, or Windows machine (Windows via PowerShell, or WSL/Git Bash)
 - **Python 3.10+** for the `/rank`, `/apply`, and `/scrape` helper tools (standard library only)
-- Optional: `pip install pypdf` and/or Poppler `pdftotext` for `/apply`'s ATS parseability check
+- Optional ATS check for `/apply`: uses `pypdf` if installed, otherwise Poppler `pdftotext` - the tool self-detects, so neither is required
 - Optional: a LaTeX distribution with `lualatex` and `xelatex` to compile CVs and cover letters
 
 ## Installation

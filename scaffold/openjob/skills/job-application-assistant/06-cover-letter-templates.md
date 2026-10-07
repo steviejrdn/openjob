@@ -22,7 +22,7 @@ Expected output: `Output written on cover_<company>_<role>.pdf (1 page, ...)`. A
 
 ## Compile-and-Inspect Loop (MANDATORY)
 
-After writing the cover letter and before presenting to the user, always compile and visually inspect the PDF. Iterate until the layout is clean:
+After writing the cover letter and before presenting to the user, always compile and visually inspect the PDF. Fix and re-compile (max 3 iterations):
 
 1. Run `xelatex -interaction=nonstopmode cover_<company>_<role>.tex`
 2. Confirm page count is exactly 1 and compile succeeded

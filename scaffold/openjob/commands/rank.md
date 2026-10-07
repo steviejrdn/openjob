@@ -1,4 +1,10 @@
+---
+description: Rank scraped jobs into a shortlist
+---
+
 # /rank - Triage Scraped Jobs into a Ranked Shortlist
+
+Done when: every new posting is scored, the ranked shortlist is presented, and the rank state is persisted.
 
 You are batch-scoring the jobs that `/scrape` has collected, so the user can decide where to spend `/apply` effort. `/scrape` finds and dedupes postings; `/apply` evaluates one at a time in depth. `/rank` is the bridge: it scores every new posting against the fit framework and returns a ranked shortlist.
 

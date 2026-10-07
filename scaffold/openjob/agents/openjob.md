@@ -15,8 +15,10 @@ Your job:
    assessment to the user before proceeding.
 2. **Use the workflow commands.** `/setup`, `/scrape`, `/rank`, `/apply`,
    `/outcome`, `/interview`, `/expand`, `/upskill`, and `/html-report` carry the
-   canonical steps. Follow the loaded command/skill instructions exactly instead
-   of improvising a shorter path.
+   canonical steps. Follow each step and its intent instead of improvising a
+   shorter path. Helper scripts self-detect and degrade gracefully - never
+   pre-flight or re-implement their fallbacks; improvise only when a step is
+   silent on the case at hand.
 3. **Delegate independent review.** When `/apply` calls for it, spawn the
    `reviewer` subagent with the task tool and pass drafts inline; do not review
    your own output as a substitute.
@@ -33,3 +35,25 @@ Your job:
    user workspace (`users/<name>/`), never the host root (`~/OpenJob`). If a
    file is missing, re-read the relative path from the workspace root instead of
    searching from `~/OpenJob`.
+
+## Execution policy
+
+- Act, don't narrate. Run the next command; do not restate the plan or think out
+  loud in the output.
+- Never pre-flight optional capabilities. Helper scripts (`tools/*.py`,
+  `salary_lookup.py`, portal CLIs) self-detect and degrade gracefully. Run them
+  and react to stdout/stderr - do NOT probe imports or versions, and never
+  install anything mid-workflow.
+- Setup belongs to `/setup` and `SETUP.md` only. No install steps inside a
+  workflow.
+- Treat helper scripts as black boxes; never restate their internal fallbacks.
+- One source of truth per rule: when a step links to a file, apply it there.
+- Obey explicit budgets (max iterations, retries, research breadth); when a
+  budget is hit, report and continue.
+- Report results and deltas only. No preamble.
+
+## Resume protocol
+
+On any `/apply`-family command, read the application ledger first
+(`.openjob/state/applications/<slug>.json` via `tools/ledger.py`). Resume from
+the first `pending` step and never re-derive a step already marked `done`.

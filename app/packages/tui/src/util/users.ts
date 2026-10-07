@@ -11,7 +11,7 @@ export type UserInfo = {
 // Shared framework entries symlinked into every user directory so the
 // command files keep resolving `tools/...`, `.agents/...` and fonts relative
 // to the workspace root. Portal CLIs under `.agents/` are shared on purpose:
-// `/add-portal` writes there and every user sees the added portal.
+// Add job portal (host mode) writes there and every user sees the added portal.
 const SHARED_ENTRIES = ["tools", ".agents", "fonts"]
 
 // Same header /outcome and /apply create on demand, so a fresh workspace is
@@ -24,9 +24,11 @@ const TRACKER_HEADER =
 const FRAMEWORK_SOURCES = ["scaffold/openjob", ".openjob"]
 
 const USER_NAME = /^[a-z0-9][a-z0-9._-]*$/i
+// Keep usernames short so they read cleanly in the launcher and fit the panel.
+export const USER_NAME_MAX = 12
 
 export function validUserName(name: string) {
-  return USER_NAME.test(name) && name !== "." && name !== ".."
+  return USER_NAME.test(name) && name.length <= USER_NAME_MAX && name !== "." && name !== ".."
 }
 
 /**
@@ -36,6 +38,16 @@ export function validUserName(name: string) {
  */
 export function usersRoot(directory: string): string {
   return existsSync(path.join(directory, ".openjob")) ? path.dirname(path.dirname(directory)) : directory
+}
+
+/**
+ * True when `directory` is a user workspace (`<host>/users/<name>` carrying a
+ * `.openjob` framework copy). False for the host root or an arbitrary dir.
+ * Host mode is a launcher: no prompt, so the slash surface is empty there.
+ */
+export function isUserWorkspace(directory: string): boolean {
+  if (!existsSync(path.join(directory, ".openjob"))) return false
+  return path.basename(path.dirname(directory)) === "users"
 }
 
 export function usersDirectory(root: string) {
@@ -58,6 +70,10 @@ export function listUsers(root: string): UserInfo[] {
       active: entry.name === active,
     }))
     .sort((a, b) => a.name.localeCompare(b.name))
+}
+
+export function listOtherUsers(root: string, current: string | undefined): UserInfo[] {
+  return listUsers(root).filter((user) => user.directory !== current)
 }
 
 export function readActiveUser(root: string): string | undefined {

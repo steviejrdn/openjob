@@ -240,7 +240,7 @@ Related trap: a bullet whose text begins with a literal `[` must be braced - `\i
 
 ## Compile-and-Inspect Loop (MANDATORY)
 
-After writing the CV and before presenting to the user, always compile and visually inspect the PDF. Iterate until the layout is clean. Workflow:
+After writing the CV and before presenting to the user, always compile and visually inspect the PDF. Fix and re-compile (max 3 iterations). Workflow:
 
 1. Run `lualatex -interaction=nonstopmode main_<company>_<role>.tex`
 2. Check the output page count: must be exactly 2
@@ -276,7 +276,7 @@ Most employers run CVs through an ATS before a human sees them, and the ATS read
 python tools/verify_pdf.py cv/main_<company>_<role>.pdf --dump-text cv/main_<company>_<role>.txt
 ```
 
-Extraction tries **pypdf** first (`pip install pypdf`, BSD license), then Poppler `pdftotext`. If a fallback still uses `pdftotext -layout`, it must also pass `-enc UTF-8`: Xpdf-based builds default to Latin-1, which makes every non-ASCII character in a perfectly good CV read back as a replacement character. If neither extractor is available, skip the mechanical check with a warning and rely on the visual PDF read for keyword coverage.
+The command selects the available extractor itself and prints `extractor: <name>`. On failure, print the reason once and rely on the visual PDF read for keyword coverage.
 
 What to check in the extraction:
 

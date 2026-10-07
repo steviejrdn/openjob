@@ -123,12 +123,12 @@ Does this role advance career goals and contain tasks that energize?
 
 ### 6. Salary Benchmark (Optional)
 
-If the salary lookup tool is configured (`salary_data.json` exists), look up the company:
+Run the salary lookup for the company:
 ```
 python salary_lookup.py "<Company Name>" --json
 ```
 
-If a city is known from the posting, add `--city "<City>"` to narrow results.
+Add `--city "<City>"` when a city is known from the posting.
 
 Present findings as:
 ```
@@ -141,7 +141,7 @@ Present findings as:
 
 Interpret results relative to the baseline defined in the data file's metadata. For index-based data, higher typically means above-market compensation.
 
-If the salary tool is not configured, skip this section.
+On empty or error output, skip this section.
 
 ## Output Format
 

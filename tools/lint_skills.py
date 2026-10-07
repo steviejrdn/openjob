@@ -26,10 +26,53 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parent.parent
 errors: list[str] = []
+warnings: list[str] = []
+
+# Fumble patterns: decisions the prompt leaves to the model that belong in a
+# tool, or install/pre-flight steps that do not belong in a workflow body.
+BANNED = [
+    (re.compile(r"pip install", re.I), "install step in a workflow body"),
+    (re.compile(r"\bif configured\b", re.I), "conditional availability"),
+    (re.compile(r"\btries\b[^.\n]*\bfirst\b", re.I), "tool-internal fallback leaked into the prompt"),
+    (re.compile(r"availability check", re.I), "pre-flight availability check"),
+    (re.compile(r"if both[^.\n]*missing", re.I), "pre-flight fallback branch"),
+    (re.compile(r"iterate until", re.I), "unbounded loop"),
+]
 
 
 def rel(path: Path) -> str:
     return str(path.relative_to(ROOT))
+
+
+def strip_comments(text: str) -> str:
+    return re.sub(r"<!--.*?-->", "", text, flags=re.S)
+
+
+def check_fumble(paths: list[Path]) -> None:
+    """Flag fumble wording (fatal) and duplicated paragraphs (advisory)."""
+    seen: dict[str, list[str]] = {}
+    for path in paths:
+        text = strip_comments(path.read_text(encoding="utf-8"))
+        for lineno, line in enumerate(text.splitlines(), 1):
+            for pattern, why in BANNED:
+                if pattern.search(line):
+                    errors.append(f"{rel(path)}:{lineno}: fumble pattern ({why}): {line.strip()[:90]}")
+        for para in re.split(r"\n\s*\n", text):
+            norm = " ".join(para.split()).lower()
+            if len(norm) < 120 or para.lstrip().startswith(("#", "|", "```")):
+                continue
+            seen.setdefault(norm, []).append(rel(path))
+    for norm, files in seen.items():
+        uniq = sorted(set(files))
+        if len(uniq) >= 3:
+            warnings.append(f"duplicated paragraph in {len(uniq)} files: {norm[:60]}... ({', '.join(uniq)})")
+
+
+def check_done_when(paths: list[Path]) -> None:
+    for path in paths:
+        text = strip_comments(path.read_text(encoding="utf-8"))
+        if not re.search(r"(?im)^\s*done when:", text):
+            warnings.append(f"{rel(path)}: no 'Done when:' line")
 
 
 def check_skill(path: Path) -> None:
@@ -105,6 +148,11 @@ def main() -> int:
     commands = sorted((ROOT / "scaffold" / "openjob" / "commands").glob("*.md")) + sorted(
         (ROOT / "scaffold" / "host" / "commands").glob("*.md")
     )
+    docs = [
+        p
+        for p in sorted(ROOT.glob("scaffold/openjob/skills/**/*.md")) + sorted(ROOT.glob(".agents/skills/**/*.md"))
+        if "/cli/" not in p.as_posix()
+    ]
     if not skills:
         errors.append("no SKILL.md files found - glob roots are wrong or the tree moved")
     if not commands:
@@ -115,6 +163,13 @@ def main() -> int:
     for command in commands:
         check_command(command)
     check_settings()
+    check_fumble(commands + docs)
+    check_done_when(commands)
+
+    if warnings:
+        print(f"lint_skills: {len(warnings)} warning(s)")
+        for warning in warnings:
+            print(f"  ~ {warning}")
 
     if errors:
         print(f"lint_skills: {len(errors)} failure(s)")

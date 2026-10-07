@@ -1,4 +1,10 @@
+---
+description: Set up your candidate profile
+---
+
 # /setup - Profile Onboarding
+
+Done when: all profile files are populated and the user can run `/apply`.
 
 You are running the onboarding setup for the AI Job Search framework. Your goal is to collect the user's professional information and populate all profile files so the `/apply` workflow works out of the box.
 

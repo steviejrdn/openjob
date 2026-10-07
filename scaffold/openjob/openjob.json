@@ -1,4 +1,8 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "default_agent": "openjob"
+  "default_agent": "openjob",
+  "compaction": {
+    "preserve_recent_tokens": 30000,
+    "tail_turns": 8
+  }
 }
