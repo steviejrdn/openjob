@@ -16,7 +16,6 @@ import { useTuiPaths } from "../context/runtime"
 import { useTheme } from "../context/theme"
 import { HomeUserPicker } from "../component/home-user-picker"
 import { isUserWorkspace } from "../util/users"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { HomeSessionDestinationProvider } from "./home/session-destination"
 
 let once = false
@@ -94,7 +93,6 @@ export function Home() {
           </pluginRuntime.Slot>
         </box>
         <Show when={hostMode()}>
-          <text fg={theme.textMuted}>v{InstallationVersion}</text>
           <box height={1} minHeight={0} flexShrink={1} />
           <HomeUserPicker />
         </Show>
