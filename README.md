@@ -24,15 +24,23 @@ every command grounds its claims against. Run `/setup` once, then `/scrape`,
 ## Features
 
 - Terminal user interface (TUI) job-search shell with an OpenJob home screen
+- Host launcher home screen: the prompt only exists inside a user workspace —
+  the host opens as a user picker (`↑↓` navigate, `Enter` select, `ctrl+p`
+  commands) to switch user or add a new one
 - Bundled workspace: commands, skills, agents, portal CLIs, and Python tools
 - Multi-agent pipeline: fit evaluation, drafting, and an independent reviewer
 - LaTeX CV (moderncv/banking) and cover letter (`cover.cls`) templates
 - Job portal search CLIs (Jobbank, Jobdanmark, Jobindex, Jobnet, LinkedIn, Freehire)
+- Scrape and rank results projected into `documents/postings/` — a job list plus
+  one Markdown note per posting, so the shortlist survives the session
+- Resumable `/apply`: an application ledger records step progress per
+  company+role and a fresh session resumes at the first pending step
 - Application tracking, outcomes, interview prep packs, and HTML reports
 - Candidate profile persisted in `AGENTS.md`
 - Runtime isolation; single self-contained binary (no Bun/Node required)
-- Built-in commands trimmed to the job-search surface (`/connect`, `/models`,
-  `/help`, `/new`, `/sessions`, `/themes`, `/exit`, `/status`)
+- Narrow command surface: a user workspace keeps `/new`, `/sessions`, and the
+  workflow commands; models, themes, users, and **Add job portal** live in the
+  `ctrl+p` palette (the host launcher has no slash commands)
 
 ## Commands
 
@@ -125,20 +133,21 @@ git clone https://github.com/steviejrdn/openjob ~/openjob
 cd ~/openjob
 openjob
 # inside the TUI:
-#   /users  → Add user…  → your name   (creates users/<name>/)
-#   /setup  → build your profile
+#   ↑↓/Enter → Add user… → your name   (creates users/<name>/)
+#   /setup → build your profile
 ```
 
-Until the first user exists, the host home screen shows a "No workspace yet —
-run /users to create one" hint, and the agent is the built-in Build agent. It
-switches to the OpenJob agent once you are inside a user workspace.
+The host home screen is a launcher rather than a prompt: it shows the version
+and an inline user picker. Until the first user exists the picker offers only
+**Add user…**, and the agent is the built-in Build agent — it switches to the
+OpenJob agent once you are inside a user workspace.
 
 With the installed binary you do not need to `cd` anywhere: running `openjob`
 from any directory — including inside a user workspace — opens the installed
-host at **`~/OpenJob`**, so `/users` always shows the same list. Use `/users`
-to switch into a user workspace. Your documents live in
-`~/OpenJob/users/<name>/documents/` — open it any time from `/users` →
-**Open workspace folder**.
+host at **`~/OpenJob`**, so the launcher always shows the same list. Pick a
+user there to switch workspaces. Your documents live in
+`~/OpenJob/users/<name>/documents/` — open it any time from the `ctrl+p`
+palette → **Open workspace folder**.
 
 From an installed release, run `openjob` from anywhere (it opens `~/OpenJob`)
 and create a user the same way.
@@ -155,12 +164,13 @@ commands, skills, agents), so `/setup` personalizes only that user's files.
 through symlinks; portal skills added via Add job portal are visible to every
 user.
 
-- `/users` inside the TUI lists users, switches to another one (the TUI
-  relaunches in that user's directory), and creates a new user.
+- The host launcher's picker lists users, switches to another one (the TUI
+  relaunches in that user's directory), and creates a new user. Inside a user
+  workspace, `ctrl+p` → **Switch user** does the same.
 - `openjob users/<name>` starts directly in that user's workspace.
 - A bare `openjob` always opens the host root (`~/OpenJob`), never the active
   user automatically; `users/.active` only marks the last user for the
-  `/users` dialog.
+  launcher.
 
 Per-user data is gitignored, so the repository stays safe to publish.
 
@@ -171,7 +181,12 @@ Per-user data is gitignored, so the repository stays safe to publish.
 - Portal CLIs in `.agents/skills/*/cli/` are orchestrated by `/scrape`; each
   `SKILL.md` documents its flags and its `enabled:` toggle.
 - Python tools in `tools/` move state through files (`seen_jobs.json`,
-  `job_search_tracker.csv`) instead of through the conversation.
+  `job_search_tracker.csv`) instead of through the conversation, and project
+  the scrape/rank results into readable Markdown under `documents/postings/`
+  (`tools/job_docs.py`).
+- `/apply` records its step progress in an application ledger
+  (`.openjob/state/applications/<slug>.json`), so a compacted or fresh
+  session resumes at the first pending step instead of redoing work.
 - Findings persist in `AGENTS.md`, the tracker, and
   `documents/applications/<company>_<role>/`.
 
@@ -187,7 +202,7 @@ into new user workspaces: `openjob/` framework, `salary_lookup.py`, CV/cover
 letter templates, documents skeleton). Per-user data and framework copies live
 in `users/<name>/` and are gitignored.
 
-Requirements: [Bun](https://bun.sh) 1.3.14 (vendored automatically) and Python 3.10+.
+Requirements: [Bun](https://bun.sh) 1.4.2 (vendored automatically) and Python 3.10+.
 
 ```bash
 # Install dependencies
