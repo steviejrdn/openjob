@@ -4,6 +4,10 @@
 Text-layer extraction tries pypdf (BSD, optional `pip install pypdf`) first,
 then Poppler `pdftotext` if pypdf is missing, raises, or returns zero
 extractable characters. Poppler remains the fallback.
+
+Pass `--render <dir>` to also render every page to a PNG with Poppler
+`pdftocairo` (300 DPI by default). Rendering is for visual inspection only -
+the ATS check still reads the embedded text layer, which is what a parser sees.
 """
 
 import argparse
@@ -87,6 +91,37 @@ def extract_text_layer(pdf_path):
     return text, pages, "pdftotext"
 
 
+def render_pages(pdf_path, output_dir, resolution=300):
+    """Render every PDF page to a PNG with pdftocairo. Returns the PNG paths."""
+    pdf_path = Path(pdf_path)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        subprocess.run(
+            ["pdftocairo", "-png", "-r", str(resolution), str(pdf_path), str(output_dir / "page")],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError as exc:
+        raise VerificationError(
+            "required command 'pdftocairo' was not found. Install poppler-utils "
+            "(macOS: brew install poppler, Debian/Ubuntu: apt install poppler-utils, "
+            "Windows: choco install poppler)"
+        ) from exc
+    except subprocess.CalledProcessError as exc:
+        detail = (exc.stderr or "").strip() or "command failed"
+        raise VerificationError(f"pdftocairo could not render the PDF: {detail}") from exc
+
+    pages = sorted(
+        output_dir.glob("page-*.png"),
+        key=lambda page: int(re.search(r"(\d+)", page.stem).group(1)),
+    )
+    if not pages:
+        raise VerificationError("pdftocairo produced no pages")
+    return pages
+
+
 def verify_pdf(pdf_path, expected_pages=None, min_chars=1, required_text=(), dump_text=None):
     pdf_path = Path(pdf_path)
     if not pdf_path.is_file():
@@ -151,6 +186,17 @@ def build_parser():
         type=Path,
         help="write the extracted text layer to this path (UTF-8)",
     )
+    parser.add_argument(
+        "--render",
+        type=Path,
+        help="render every page to a PNG in this directory with pdftocairo",
+    )
+    parser.add_argument(
+        "--render-dpi",
+        type=int,
+        default=300,
+        help="resolution for --render (default: 300)",
+    )
     return parser
 
 
@@ -168,6 +214,13 @@ def main(argv=None):
         print(f"Error: {args.pdf}: {exc}", file=sys.stderr)
         return 1
     print(f"Verified {args.pdf} (extractor: {extractor}, pages: {pages})")
+    if args.render is not None:
+        try:
+            rendered = render_pages(args.pdf, args.render, args.render_dpi)
+        except VerificationError as exc:
+            print(f"Error: {args.pdf}: {exc}", file=sys.stderr)
+            return 1
+        print(f"Rendered {len(rendered)} page(s) to {args.render}")
     return 0
 
 
