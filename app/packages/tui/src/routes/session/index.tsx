@@ -73,6 +73,7 @@ import { useTuiConfig } from "../../config"
 import { useClipboard } from "../../context/clipboard"
 import { nextThinkingMode, reasoningSummary, useThinkingMode, type ThinkingMode } from "../../context/thinking"
 import { getScrollAcceleration } from "../../util/scroll"
+import { isWaitingForOutput } from "../../util/session-waiting"
 import { collapseToolOutput } from "../../util/collapse-tool-output"
 import { usePluginRuntime } from "../../plugin/runtime"
 import { DialogRetryAction } from "../../component/dialog-retry-action"
@@ -248,6 +249,17 @@ export function Session() {
 
   const lastAssistant = createMemo(() => {
     return messages().findLast((x) => x.role === "assistant")
+  })
+
+  const sessionStatus = createMemo(() => sync.data.session_status[route.sessionID])
+
+  // Optimistic feedback: show "Thinking" as soon as the session reports busy,
+  // instead of waiting for the first reasoning delta (which can take a second
+  // or two on a cold request). Hides as soon as any part renders its own state.
+  const waiting = createMemo(() => {
+    const list = messages()
+    const last = list[list.length - 1]
+    return isWaitingForOutput(sessionStatus(), last, last ? (sync.data.part[last.id] ?? []) : [])
   })
 
   const dimensions = useTerminalDimensions()
@@ -1270,6 +1282,11 @@ export function Session() {
                     </Switch>
                   )}
                 </For>
+                <Show when={waiting()}>
+                  <box paddingLeft={3} marginTop={1} flexShrink={0}>
+                    <Spinner color={theme.warning}>Thinking</Spinner>
+                  </box>
+                </Show>
               </scrollbox>
               <box flexShrink={0}>
                 <Show when={permissions().length > 0}>

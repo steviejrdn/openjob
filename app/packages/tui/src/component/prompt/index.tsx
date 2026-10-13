@@ -1123,6 +1123,9 @@ export function Prompt(props: PromptProps) {
       })
     } else {
       move.startSubmit()
+      // Optimistic: reflect busy immediately so the UI shows progress on enter
+      // instead of waiting for the server's session.status event.
+      if (sessionID) sync.set("session_status", sessionID, { type: "busy" })
       sdk.client.session
         .prompt(
           {
@@ -1143,6 +1146,7 @@ export function Prompt(props: PromptProps) {
           { throwOnError: true },
         )
         .catch((error) => {
+          if (sessionID) sync.set("session_status", sessionID, { type: "idle" })
           toast.show({
             title: "Failed to send prompt",
             message: errorMessage(error),
