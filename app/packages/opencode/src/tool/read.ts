@@ -9,6 +9,8 @@ import { InstanceState } from "@/effect/instance-state"
 import { assertExternalDirectoryEffect } from "./external-directory"
 import { Instruction } from "../session/instruction"
 import { isPdfAttachment, sniffAttachmentMime } from "@/util/media"
+import { Process } from "@/util/process"
+import type { Provider } from "@/provider/provider"
 
 const DEFAULT_READ_LIMIT = 2000
 const MAX_LINE_LENGTH = 2000
@@ -179,6 +181,34 @@ export const ReadTool = Tool.define<
       return { raw, count: flags.count, cut: flags.cut, more: flags.more, offset: opts.offset }
     })
 
+    const renderPdfPages = Effect.fn("ReadTool.renderPdfPages")(function* (filepath: string) {
+      // Render every page to a PNG with pdftocairo so vision models read the page
+      // as it actually looks (layout, glyphs, icons) instead of relying on the
+      // PDF's text layer, which silently drops everything that is visual.
+      // Returns undefined when pdftocairo is missing or produced no pages, so the
+      // caller can fall back to pdftotext.
+      const dir = yield* fs.makeTempDirectoryScoped({ prefix: "openjob-pdf-" })
+      const result = yield* Effect.promise(() =>
+        Process.run(["pdftocairo", "-png", "-r", "300", filepath, path.join(dir, "page")], { nothrow: true }),
+      )
+      if (result.code !== 0) return undefined
+
+      const pages = (yield* fs.readDirectory(dir))
+        .filter((name) => /^page-\d+\.png$/.test(name))
+        .sort((a, b) => Number(a.match(/(\d+)/)![1]) - Number(b.match(/(\d+)/)![1]))
+      if (pages.length === 0) return undefined
+
+      return yield* Effect.forEach(pages, (name) => fs.readFile(path.join(dir, name)))
+    })
+
+    const extractPdfText = Effect.fn("ReadTool.extractPdfText")(function* (filepath: string) {
+      const result = yield* Effect.promise(() =>
+        Process.run(["pdftotext", "-layout", "-enc", "UTF-8", filepath, "-"], { nothrow: true }),
+      )
+      if (result.code !== 0) return undefined
+      return result.stdout.toString("utf-8")
+    })
+
     const isBinaryFile = (filepath: string, bytes: Uint8Array) => {
       const ext = path.extname(filepath).toLowerCase()
       switch (ext) {
@@ -303,9 +333,59 @@ export const ReadTool = Tool.define<
       const mime = sniffAttachmentMime(sample, FSUtil.mimeType(filepath))
       const isImage = SUPPORTED_IMAGE_MIMES.has(mime)
 
-      if (isImage || isPdfAttachment(mime)) {
+      if (isPdfAttachment(mime)) {
+        const model = ctx.extra?.["model"] as Provider.Model | undefined
+        const canSeeImages = model?.capabilities?.input?.image === true
+        const loadedFiles = loaded.map((item) => item.filepath)
+
+        // Vision models read the rendered page; the text layer is only a fallback.
+        if (canSeeImages) {
+          const pages = yield* Effect.scoped(renderPdfPages(filepath))
+          if (pages && pages.length > 0) {
+            const msg = `PDF read successfully (${pages.length} page${pages.length === 1 ? "" : "s"} rendered as images)`
+            return {
+              title,
+              output: msg,
+              metadata: { preview: msg, truncated: false, loaded: loadedFiles },
+              attachments: pages.map((bytes) => ({
+                type: "file" as const,
+                mime: "image/png",
+                url: `data:image/png;base64,${Buffer.from(bytes).toString("base64")}`,
+              })),
+            }
+          }
+        }
+
+        const text = yield* extractPdfText(filepath)
+        if (text === undefined) {
+          return yield* Effect.fail(
+            new Error(
+              `Cannot read PDF ${filepath}: pdftocairo and pdftotext are unavailable. ` +
+                "Install poppler-utils (macOS: brew install poppler, Debian/Ubuntu: apt install poppler-utils, Windows: choco install poppler).",
+            ),
+          )
+        }
+        const note = canSeeImages
+          ? "pdftocairo unavailable, extracted the text layer with pdftotext"
+          : "this model has no image input, extracted the text layer with pdftotext"
+        const output = [
+          `<path>${filepath}</path>`,
+          `<type>file</type>`,
+          "<content>",
+          text.endsWith("\n") ? text.slice(0, -1) : text,
+          "</content>",
+          `(PDF: ${note})`,
+        ].join("\n")
+        return {
+          title,
+          output,
+          metadata: { preview: text.slice(0, 2000), truncated: false, loaded: loadedFiles },
+        }
+      }
+
+      if (isImage) {
         const bytes = yield* fs.readFile(filepath)
-        const msg = isPdfAttachment(mime) ? "PDF read successfully" : "Image read successfully"
+        const msg = "Image read successfully"
         return {
           title,
           output: msg,

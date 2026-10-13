@@ -2,6 +2,7 @@ import { PermissionV1 } from "@opencode-ai/core/v1/permission"
 import { afterEach, describe, expect } from "bun:test"
 import { LayerNode } from "@opencode-ai/core/effect/layer-node"
 import { Cause, Effect, Exit, Layer, Stream } from "effect"
+import { execFileSync } from "node:child_process"
 import path from "path"
 import { Agent } from "../../src/agent/agent"
 import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
@@ -79,6 +80,18 @@ const exec = Effect.fn("ReadToolTest.exec")(function* (
 ) {
   return yield* provideInstance(dir)(run(args, next))
 })
+
+const hasPoppler = (() => {
+  try {
+    execFileSync("pdftocairo", ["-v"], { stdio: "ignore" })
+    execFileSync("pdftotext", ["-v"], { stdio: "ignore" })
+    return true
+  } catch {
+    return false
+  }
+})()
+
+const itPdf = hasPoppler ? it.live : it.live.skip
 
 const fail = Effect.fn("ReadToolTest.fail")(function* (
   dir: string,
@@ -563,6 +576,43 @@ root_type Monster;`
         expect(result.attachments).toBeUndefined()
         expect(result.output).toContain(item[1])
       }
+    }),
+  )
+
+  const pdfCtx = (image: boolean): Tool.Context => ({
+    ...ctx,
+    extra: { model: { capabilities: { input: { image } } } },
+  })
+
+  itPdf("renders every PDF page as an image attachment for vision models", () =>
+    Effect.gen(function* () {
+      const result = yield* exec(
+        FIXTURES_DIR,
+        { filePath: path.join(FIXTURES_DIR, "sample.pdf") },
+        pdfCtx(true),
+      )
+      expect(result.output).toContain("2 pages rendered as images")
+      expect(result.attachments).toBeDefined()
+      expect(result.attachments?.length).toBe(2)
+      for (const attachment of result.attachments ?? []) {
+        expect(attachment.type).toBe("file")
+        expect(attachment.mime).toBe("image/png")
+        expect(attachment.url.startsWith("data:image/png;base64,")).toBe(true)
+      }
+    }),
+  )
+
+  itPdf("falls back to the PDF text layer when the model has no image input", () =>
+    Effect.gen(function* () {
+      const result = yield* exec(
+        FIXTURES_DIR,
+        { filePath: path.join(FIXTURES_DIR, "sample.pdf") },
+        pdfCtx(false),
+      )
+      expect(result.attachments).toBeUndefined()
+      expect(result.output).toContain("OpenJob PDF fixture page one")
+      expect(result.output).toContain("OpenJob PDF fixture page two")
+      expect(result.output).toContain("no image input")
     }),
   )
 })

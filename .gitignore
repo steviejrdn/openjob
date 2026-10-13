@@ -16,6 +16,7 @@ venv/
 
 # Compiled documents
 *.pdf
+!app/packages/opencode/test/tool/fixtures/*.pdf
 *.aux
 *.log
 *.out
