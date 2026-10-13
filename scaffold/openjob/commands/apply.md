@@ -303,7 +303,7 @@ An ATS parser reads the PDF's embedded **text layer**, not the rendered page —
 python tools/verify_pdf.py cv/main_<company>_<role>.pdf --dump-text cv/main_<company>_<role>.txt
 ```
 
-The command selects the available extractor itself and prints `extractor: <name>` on success, or one reason line on failure. Record the extractor name in the Step 6 report and read the `.txt` file. On failure, print that line once and check keyword coverage from the visual PDF read instead.
+The command selects the available extractor itself and prints `extractor: <name>` on success, or one reason line on failure. Record the extractor name in the Step 6 report and read the `.txt` file. On failure, print that line once and check keyword coverage from the visual PDF read instead (the read tool renders each page to an image at 300 DPI; add `--render <dir>` to dump the same page images for a manual check).
 
 **2. Parseability checks** on the extracted text:
 

@@ -144,7 +144,7 @@ Both documents MUST be compiled and visually inspected via the read tool on the 
 - [ ] **Cover letter bullet font matches body font** - `\lettercontent{}` must not wrap `\begin{itemize}...\end{itemize}` (the command's trailing `\\` errors on `\end{itemize}`, and moving itemize outside loses the body font (Lato)). Standard pattern: close `\lettercontent{}`, then wrap the list in `{\raggedright\gsmedium\fontsize{11pt}{13pt}\selectfont \begin{itemize}...\end{itemize}\par}`
 
 ### ATS & keyword verification (CV)
-ATS parsers read the PDF's embedded text layer, not the rendered page. Extract it with `python tools/verify_pdf.py cv/main_<company>_<role>.pdf --dump-text cv/main_<company>_<role>.txt`; the script selects the extractor itself and prints `extractor: <name>`. On failure, print the reason once and check keyword coverage from the visual PDF read instead.
+ATS parsers read the PDF's embedded text layer, not the rendered page. Extract it with `python tools/verify_pdf.py cv/main_<company>_<role>.pdf --dump-text cv/main_<company>_<role>.txt`; the script selects the extractor itself and prints `extractor: <name>`. On failure, print the reason once and check keyword coverage from the visual PDF read instead (the read tool renders each page to an image at 300 DPI; add `--render <dir>` to the command above to dump the same page images for a manual check).
 
 Do not pre-flight optional tooling: `tools/*.py` self-detect and degrade gracefully. Run them and react to their output.
 - [ ] CV text layer extracts cleanly - no `(cid:*)` markers, `�` replacement characters, or text visible in the PDF but absent from the extraction

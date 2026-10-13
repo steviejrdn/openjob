@@ -276,7 +276,7 @@ Most employers run CVs through an ATS before a human sees them, and the ATS read
 python tools/verify_pdf.py cv/main_<company>_<role>.pdf --dump-text cv/main_<company>_<role>.txt
 ```
 
-The command selects the available extractor itself and prints `extractor: <name>`. On failure, print the reason once and rely on the visual PDF read for keyword coverage.
+The command selects the available extractor itself and prints `extractor: <name>`. On failure, print the reason once and rely on the visual PDF read for keyword coverage (the read tool renders each page to an image at 300 DPI; add `--render <dir>` to dump the same page images for a manual check).
 
 What to check in the extraction:
 

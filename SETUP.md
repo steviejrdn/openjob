@@ -121,6 +121,12 @@ Set-Location cover_letters; xelatex -interaction=nonstopmode -halt-on-error cove
 
 Either one is sufficient. If **neither** is available, `/apply` skips the mechanical check with a warning and falls back to a visual keyword review — everything else works normally.
 
+### Optional: PDF page rendering (Poppler `pdftocairo`)
+
+When you read a PDF, OpenJob renders every page to an image with Poppler `pdftocairo` (300 DPI) and reads the pages visually, so nothing that only exists in the layout is missed. If the active model has no image input, it falls back to extracting the text layer with `pdftotext`.
+
+`pdftocairo` ships in the same **Poppler** package as `pdftotext`: `brew install poppler` (macOS), `sudo apt install poppler-utils` (Debian/Ubuntu), `choco install poppler` (Windows). If Poppler is missing entirely, reading a PDF fails with an install hint; everything else works normally. Pass `--render <dir>` to `tools/verify_pdf.py` to dump the same page images yourself for a visual check.
+
 ## 2. Workspace layout
 
 OpenJob is multi-user: the repository (or the installer's workspace template)

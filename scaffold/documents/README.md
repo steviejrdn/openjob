@@ -187,7 +187,7 @@ Application folders may also contain **`interview_prep_<stage>.md`** files writt
 
 | Format | Readable by `/setup` | Notes |
 |--------|--------------------------|-------|
-| `.pdf` | Yes | Parsed directly with the Read tool |
+| `.pdf` | Yes | Each page is rendered to an image with `pdftocairo` and read visually; models without image input get the extracted text layer (`pdftotext`) instead |
 | `.tex` | Yes | LaTeX source — structure and content both readable |
 | `.md` | Yes | Plain text |
 | `.txt` | Yes | Plain text |
