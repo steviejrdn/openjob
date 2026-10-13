@@ -747,6 +747,37 @@ it.instance(
 )
 
 it.instance(
+  "getSmallModel falls back to other small families for opencode providers",
+  Effect.gen(function* () {
+    const model = yield* Provider.use.getSmallModel(ProviderV2.ID.make("opencode-test"))
+    expect(model?.id).toBe(ModelV2.ID.make("claude-haiku"))
+  }),
+  {
+    // The `config` fixture writes opencode.json, which config discovery in this
+    // fork no longer reads (it looks for openjob.json), so write the file the
+    // product actually loads.
+    init: (dir: string) =>
+      Effect.promise(() =>
+        Filesystem.write(
+          path.join(dir, "openjob.json"),
+          JSON.stringify({
+            provider: {
+              "opencode-test": {
+                name: "OpenJob Gateway",
+                npm: "@ai-sdk/openai-compatible",
+                models: {
+                  "claude-haiku": { family: "claude-haiku", release_date: "2026-01-01" },
+                },
+                options: { apiKey: "test-key" },
+              },
+            },
+          }),
+        ),
+      ),
+  },
+)
+
+it.instance(
   "getSmallModel matches exact model families",
   Effect.gen(function* () {
     const model = yield* Provider.use.getSmallModel(ProviderV2.ID.make("test-provider"))
