@@ -56,7 +56,7 @@ every command grounds its claims against. Run `/setup` once, then `/scrape`,
 | `/upskill` | Turn role gaps into a learning plan |
 | `/html-report` | Turn the tracker into a shareable report |
 | `/add-template` | Register a custom CV/cover template |
-| Add job portal *(host mode)* | Generate a new portal search CLI |
+| Add job portal *(host mode)* | Enter a job board URL to generate a new portal search CLI |
 | `/reset` | Clear personal data from the workspace |
 
 ## Prerequisites
