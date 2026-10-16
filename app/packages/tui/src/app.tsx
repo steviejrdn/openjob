@@ -54,6 +54,7 @@ import { DialogHelp } from "./ui/dialog-help"
 import { DialogAgent } from "./component/dialog-agent"
 import { DialogSessionList } from "./component/dialog-session-list"
 import { DialogUsers } from "./component/dialog-users"
+import { DialogPrompt } from "./ui/dialog-prompt"
 import { DialogWorkspaceList } from "./component/dialog-workspace-list"
 import { DialogConsoleOrg } from "./component/dialog-console-org"
 import { ThemeProvider, useTheme } from "./context/theme"
@@ -990,7 +991,27 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
           const directory = project.instance.directory()
           const agent = local.agent.current()
           const model = local.model.current()
-          if (!agent || !model) return
+          if (!agent || !model) {
+            dialog.clear()
+            toast.show({ message: "Pick a model before adding a portal.", variant: "error" })
+            return
+          }
+          // Ask for the portal up front: /add-portal starts at its interview
+          // otherwise, and a URL given here skips straight to reconnaissance.
+          const entered = await DialogPrompt.show(dialog, "Add portal URL", {
+            placeholder: "https://www.example.com",
+            description: () => (
+              <text fg={theme.textMuted}>
+                OpenJob inspects this job board, then generates a search skill for it under .agents/skills.
+              </text>
+            ),
+          })
+          const typed = entered?.trim() ?? ""
+          if (!typed) {
+            dialog.clear()
+            return
+          }
+          const url = /^https?:\/\//i.test(typed) ? typed : `https://${typed}`
           const variant = local.model.variant.current()
           const created = await sdk.client.session.create({
             directory,
@@ -998,20 +1019,30 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
             model: { providerID: model.providerID, id: model.modelID, variant },
           })
           if (created.error || !created.data) {
+            dialog.clear()
             toast.show({ message: "Could not start a session for /add-portal.", variant: "error" })
             return
           }
-          await sdk.client.session.command({
-            sessionID: created.data.id,
-            command: "add-portal",
-            arguments: "",
-            agent: agent.name,
-            model: `${model.providerID}/${model.modelID}`,
-            variant,
-            parts: [],
-          })
-          route.navigate({ type: "session", sessionID: created.data.id })
+          const sessionID = created.data.id
+          // Show the session before the command round-trip so a slow or failed
+          // start is never a silent no-op.
+          route.navigate({ type: "session", sessionID })
           dialog.clear()
+          const sent = await sdk.client.session
+            .command({
+              sessionID,
+              command: "add-portal",
+              arguments: url,
+              agent: agent.name,
+              model: `${model.providerID}/${model.modelID}`,
+              variant,
+              parts: [],
+            })
+            .catch((error: unknown) => {
+              toast.show({ message: errorMessage(error), variant: "error" })
+              return undefined
+            })
+          if (sent?.error) toast.show({ message: "Could not run /add-portal.", variant: "error" })
         },
       },
       {

@@ -96,5 +96,10 @@ Upstream docs and infrastructure that would confuse the product surface:
   even when opened from inside a user workspace. Each user gets its own
   `.openjob` framework copy from `scaffold/openjob` (repo layout), and `users/`
   is gitignored.
+- The palette's **Add job portal** action asks for the portal URL in a prompt
+  dialog first (`packages/tui/src/app.tsx`) and passes it to the `add-portal`
+  command as its argument, so the session starts on that portal instead of
+  running the interview. Missing model or failed session start now reports a
+  toast instead of returning silently.
 - The built-in command palette/slash surface is trimmed via
   `packages/tui/src/prompt/commands.ts`.
