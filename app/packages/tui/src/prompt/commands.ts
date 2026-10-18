@@ -59,6 +59,8 @@ export const OPENJOB_PALETTE_DENYLIST = new Set([
   "session.export",
   "session.share",
   "fork",
+  // Upstream self-update: OpenJob updates only through `openjob update`.
+  "opencode.update",
 ])
 
 export function isOpenJobSlashCommand(name: string, userMode: boolean) {

@@ -67,9 +67,10 @@ import { ToastProvider, useToast } from "./ui/toast"
 import { isDefaultTitle } from "./util/session"
 import { PORTAL_BATCH_MAX, parsePortalUrls, portalUrlCount, rememberPortalSessions } from "./util/portal-batch"
 import { KVProvider, useKV } from "./context/kv"
+import { UpdateNotificationProvider, useUpdateNotification, type UpdateSource } from "./context/update-notification"
 import * as Model from "./util/model"
 import { ArgsProvider, useArgs, type Args } from "./context/args"
-import open from "open"
+import { openUrl } from "@opencode-ai/core/open"
 import { PromptRefProvider, usePromptRef } from "./context/prompt"
 import { TuiConfigProvider, useTuiConfig, type TuiConfig } from "./config"
 import { createTuiApiAdapters } from "./plugin/adapters"
@@ -155,6 +156,7 @@ export type TuiInput = {
   headers?: RequestInit["headers"]
   events?: EventSource
   pluginHost: TuiPluginHost
+  updater?: UpdateSource
 }
 
 function errorMessage(error: unknown) {
@@ -304,10 +306,12 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
                                                               <PromptRefProvider>
                                                                 <EditorContextProvider>
                                                                   <LocationProvider>
-                                                                    <App
-                                                                      onSnapshot={input.onSnapshot}
-                                                                      pluginHost={input.pluginHost}
-                                                                    />
+                                                                    <UpdateNotificationProvider updater={input.updater}>
+                                                                      <App
+                                                                        onSnapshot={input.onSnapshot}
+                                                                        pluginHost={input.pluginHost}
+                                                                      />
+                                                                    </UpdateNotificationProvider>
                                                                   </LocationProvider>
                                                                 </EditorContextProvider>
                                                               </PromptRefProvider>
@@ -381,6 +385,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
   const pluginRuntime = usePluginRuntime()
   const attention = createTuiAttention({ renderer, config: tuiConfig, kv })
   const clipboard = useClipboard()
+  const update = useUpdateNotification()
 
   const api = createTuiApi(
     createTuiApiAdapters({
@@ -791,6 +796,17 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         },
         category: "System",
       },
+      ...(update.open
+        ? [
+            {
+              name: "opencode.update",
+              title: "Update OpenCode",
+              slashName: "update",
+              run: () => update.open?.(),
+              category: "System",
+            },
+          ]
+        : []),
       {
         name: "opencode.debug",
         title: "View debug info",
@@ -841,7 +857,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         name: "docs.open",
         title: "Open docs",
         run: () => {
-          open("https://opencode.ai/docs").catch(() => {})
+          openUrl("https://opencode.ai/docs").catch(() => {})
           dialog.clear()
         },
         category: "System",
