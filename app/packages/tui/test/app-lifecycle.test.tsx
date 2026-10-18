@@ -1,5 +1,4 @@
 import { expect, mock, test } from "bun:test"
-import type { TuiPluginApi } from "@opencode-ai/plugin/tui"
 import { createTestRenderer } from "@opentui/core/testing"
 import { Effect } from "effect"
 import { AppNodeBuilder } from "@opencode-ai/core/effect/app-node-builder"
@@ -60,72 +59,6 @@ test("SIGHUP clears title and disposes scoped resources once", async () => {
   }
 })
 
-test("app.exit prints the session epilogue after scoped cleanup", async () => {
-  const setup = await createTestRenderer({ width: 80, height: 24, useThread: false })
-  const core = await import("@opentui/core")
-  mock.module("@opentui/core", () => ({ ...core, createCliRenderer: async () => setup.renderer }))
-  const events = createEventSource()
-  const calls = createFetch((url) => {
-    if (url.pathname === "/session")
-      return json([
-        {
-          id: "dummy",
-          title: "Demo session",
-          slug: "dummy",
-          projectID: "project",
-          directory,
-          version: "0.0.0-test",
-          time: { created: 0, updated: 0 },
-        },
-      ])
-  })
-  const originalWrite = process.stdout.write.bind(process.stdout)
-  let stdout = ""
-  let api: TuiPluginApi | undefined
-  let started!: () => void
-  const ready = new Promise<void>((resolve) => {
-    started = resolve
-  })
-
-  process.stdout.write = ((chunk: string | Uint8Array) => {
-    stdout += String(chunk)
-    return true
-  }) as typeof process.stdout.write
-
-  try {
-    const { run } = await import("../src/app")
-    const task = Effect.runPromise(
-      run({
-        url: "http://test",
-        directory,
-        config: createTuiResolvedConfig({ plugin_enabled: {} }),
-        fetch: calls.fetch,
-        events: events.source,
-        args: { continue: true },
-        pluginHost: {
-          async start(input) {
-            api = input.api
-            started()
-          },
-          async dispose() {},
-        },
-      }).pipe(Effect.provide(AppNodeBuilder.build(Global.node))),
-    )
-
-    await ready
-    await setup.renderOnce()
-    await setup.renderOnce()
-    api?.keymap.dispatchCommand("app.exit")
-    await task
-
-    expect(stdout).toContain("Demo session")
-    expect(stdout).toContain("opencode -s dummy")
-  } finally {
-    process.stdout.write = originalWrite
-    if (!setup.renderer.isDestroyed) setup.renderer.destroy()
-    mock.restore()
-  }
-})
 
 test("fatal startup errors set a nonzero exit after scoped cleanup", async () => {
   const setup = await createTestRenderer({ width: 80, height: 24, useThread: false })

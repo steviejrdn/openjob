@@ -48,12 +48,12 @@ Upstream docs and infrastructure that would confuse the product surface:
   official installer instead of self-updating. The TUI performs a once-a-day,
   notification-only version check against the OpenJob GitHub releases
   (`installation/openjob-update.ts`, toast in `app.tsx`, wired through
-  `cli/tui/worker.ts`); `OPENJOB_DISABLE_UPDATE_CHECK=1` turns it off. Dev
-  builds (`dev`, `<version>+dev`) never check or notify - their version already
-  names the release being worked on - and only released binaries compare
-  versions. The same update refreshes `documents/README.md` inside every user
-  workspace (`cli/cmd/upgrade.ts`): it is framework documentation, not personal
-  data.
+  `cli/tui/worker.ts`); `OPENJOB_DISABLE_UPDATE_CHECK=1` turns it off. Source
+  checkouts and preview builds never check or notify, even though their
+  displayed version comes from repository-root `VERSION`; release binaries
+  compare versions, and release tags must match `VERSION`. The same update
+  refreshes `documents/README.md` inside every user workspace
+  (`cli/cmd/upgrade.ts`): it is framework documentation, not personal data.
 - All inherited `OPENCODE_*` env vars are stripped at startup; `HOME` and
   `XDG_*` point into the OpenJob runtime.
 - Project config stays enabled (`openjob.json`, `.openjob/`) unlike Ocarina's
@@ -96,10 +96,17 @@ Upstream docs and infrastructure that would confuse the product surface:
   even when opened from inside a user workspace. Each user gets its own
   `.openjob` framework copy from `scaffold/openjob` (repo layout), and `users/`
   is gitignored.
-- The palette's **Add job portal** action asks for the portal URL in a prompt
-  dialog first (`packages/tui/src/app.tsx`) and passes it to the `add-portal`
-  command as its argument, so the session starts on that portal instead of
-  running the interview. Missing model or failed session start now reports a
-  toast instead of returning silently.
+- The palette's **Add job portal** action asks for portal URLs in a prompt
+  dialog first (`packages/tui/src/app.tsx`). Spaces, commas, and new lines
+  separate up to five portals (`packages/tui/src/util/portal-batch.ts`); each one
+  gets its own session, starts on that portal instead of running the interview,
+  and the session ids are remembered in kv so the sessions are treated as a
+  batch. Missing model or failed session start now reports a toast instead of
+  returning silently, and pasting more than five URLs reports that only the first
+  five started.
+- Portal sessions from that batch hide the chat composer
+  (`packages/tui/src/routes/session/index.tsx`): answers go through the question
+  and permission dialogs, which surface prompts from every portal session in the
+  batch and can be answered from any of them.
 - The built-in command palette/slash surface is trimmed via
   `packages/tui/src/prompt/commands.ts`.

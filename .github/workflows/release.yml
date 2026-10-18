@@ -33,14 +33,20 @@ jobs:
       - name: Resolve version
         id: version
         run: |
+          DECLARED_VERSION="$(tr -d '[:space:]' < VERSION)"
           VERSION=""
           if [[ "${{ github.event_name }}" == "push" ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
           else
             VERSION="${{ github.event.inputs.version }}"
           fi
+          if [[ -z "$VERSION" ]]; then VERSION="$DECLARED_VERSION"; fi
           if [[ -z "$VERSION" ]]; then
-            echo "::error::Version could not be resolved. Push a v* tag or provide a version via workflow_dispatch."
+            echo "::error::Version could not be resolved. Push a v* tag or declare it in VERSION."
+            exit 1
+          fi
+          if [[ "$VERSION" != "$DECLARED_VERSION" ]]; then
+            echo "::error::Release version $VERSION does not match VERSION ($DECLARED_VERSION). Update VERSION before releasing."
             exit 1
           fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"

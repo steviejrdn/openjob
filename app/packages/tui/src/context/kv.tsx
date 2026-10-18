@@ -7,6 +7,12 @@ import { readJson, writeJsonAtomic } from "../util/persistence"
 import { useTuiPaths } from "./runtime"
 import path from "path"
 
+/** Read/write surface of the KV store that helpers outside this context need. */
+export interface KVStore {
+  get(key: string, defaultValue?: unknown): unknown
+  set(key: string, value: unknown): void
+}
+
 export const { use: useKV, provider: KVProvider } = createSimpleContext({
   name: "KV",
   init: () => {

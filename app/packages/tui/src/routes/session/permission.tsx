@@ -1,6 +1,6 @@
 import { createStore } from "solid-js/store"
 import { dirname } from "node:path"
-import { createMemo, For, Match, Show, Switch } from "solid-js"
+import { createEffect, createMemo, For, Match, on, Show, Switch } from "solid-js"
 import { Portal, useRenderer, useTerminalDimensions, type JSX } from "@opentui/solid"
 import type { TextareaRenderable } from "@opentui/core"
 import { useTheme, selectedForeground } from "../../context/theme"
@@ -115,6 +115,12 @@ export function PermissionPrompt(props: { request: PermissionRequest; directory?
   const [store, setStore] = createStore({
     stage: "permission" as PermissionStage,
   })
+
+  // Same one-instance-many-requests shape as the question prompt: the parent
+  // renders permissions()[0], so hand the next request the first stage instead
+  // of whatever the previous one was left on.
+  createEffect(on(() => props.request.id, () => setStore("stage", "permission"), { defer: true }))
+
   const pathFormatter = usePathFormatter()
 
   const session = createMemo(() => sync.data.session.find((s) => s.id === props.request.sessionID))

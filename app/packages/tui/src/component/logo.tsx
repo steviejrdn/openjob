@@ -3,7 +3,7 @@ import { For, Show } from "solid-js"
 import { useTerminalDimensions } from "@opentui/solid"
 import { useTheme } from "../context/theme"
 import { openjobAscii } from "../logo"
-import { OpenJobVersion } from "@opencode-ai/core/installation/version"
+import { OpenJobVersionLabel } from "@opencode-ai/core/installation/version"
 
 export function Logo() {
   const { theme } = useTheme()
@@ -31,7 +31,7 @@ export function Logo() {
         </box>
       </Show>
       <text fg={theme.textMuted} selectable={false}>
-        {OpenJobVersion === "dev" ? "dev" : `v${OpenJobVersion}`}
+        {OpenJobVersionLabel}
       </text>
     </box>
   )

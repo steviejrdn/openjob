@@ -1,5 +1,5 @@
 import { createStore } from "solid-js/store"
-import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js"
+import { createEffect, createMemo, createSignal, For, on, onCleanup, onMount, Show } from "solid-js"
 import { useRenderer } from "@opentui/solid"
 import type { TextareaRenderable } from "@opentui/core"
 import { selectedForeground, tint, useTheme } from "../../context/theme"
@@ -29,6 +29,18 @@ export function QuestionPrompt(props: { request: QuestionRequest; directory?: st
     selected: 0,
     editing: false,
   })
+
+  // The parent keeps one prompt instance across requests (it renders
+  // questions()[0] and only swaps the prop), so a second portal's request
+  // would otherwise open on the previous request's tab, with its answers and
+  // selection still in place.
+  createEffect(
+    on(
+      () => props.request.id,
+      () => setStore({ tab: 0, answers: [], custom: [], selected: 0, editing: false }),
+      { defer: true },
+    ),
+  )
 
   let textarea: TextareaRenderable | undefined
 

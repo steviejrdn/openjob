@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { resolveUpdateAvailability } from "../../src/installation/openjob-update"
-import { isDevVersion } from "../../src/installation/version"
+import { formatOpenJobVersion, isDevVersion } from "../../src/installation/version"
 
 describe("openjob update availability", () => {
   test("only a newer release is announced", () => {
@@ -25,5 +25,12 @@ describe("dev version detection", () => {
   test("release versions are not dev", () => {
     expect(isDevVersion("0.1.9")).toBe(false)
     expect(isDevVersion("0.1.8")).toBe(false)
+  })
+})
+
+describe("OpenJob version label", () => {
+  test("matches the release label used by the TUI", () => {
+    expect(formatOpenJobVersion("0.2.1")).toBe("v0.2.1")
+    expect(formatOpenJobVersion("dev")).toBe("dev")
   })
 })

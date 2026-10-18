@@ -74,6 +74,7 @@ import { useClipboard } from "../../context/clipboard"
 import { nextThinkingMode, reasoningSummary, useThinkingMode, type ThinkingMode } from "../../context/thinking"
 import { getScrollAcceleration } from "../../util/scroll"
 import { isWaitingForOutput } from "../../util/session-waiting"
+import { readPortalSessions } from "../../util/portal-batch"
 import { collapseToolOutput } from "../../util/collapse-tool-output"
 import { usePluginRuntime } from "../../plugin/runtime"
 import { DialogRetryAction } from "../../component/dialog-retry-action"
@@ -228,16 +229,37 @@ export function Session() {
         )
       : [],
   )
+  const portalBatch = createMemo(() => readPortalSessions(kv))
+  const portalSession = createMemo(() => portalBatch().includes(route.sessionID))
   const permissions = createMemo(() => {
     if (session()?.parentID) return []
-    return children().flatMap((x) => sync.data.permission[x.id] ?? [])
+    const own = children().flatMap((x) => sync.data.permission[x.id] ?? [])
+    if (!portalSession()) return own
+    const seen = new Set(own.map((request) => request.id))
+    return [
+      ...own,
+      ...portalBatch()
+        .filter((id) => id !== route.sessionID)
+        .flatMap((id) => sync.data.permission[id] ?? [])
+        .filter((request) => !seen.has(request.id)),
+    ]
   })
   const questions = createMemo(() => {
     if (session()?.parentID) return []
-    return children().flatMap((x) => sync.data.question[x.id] ?? [])
+    const own = children().flatMap((x) => sync.data.question[x.id] ?? [])
+    if (!portalSession()) return own
+    const seen = new Set(own.map((request) => request.id))
+    return [
+      ...own,
+      ...portalBatch()
+        .filter((id) => id !== route.sessionID)
+        .flatMap((id) => sync.data.question[id] ?? [])
+        .filter((request) => !seen.has(request.id)),
+    ]
   })
   const visible = createMemo(() => !session()?.parentID && permissions().length === 0 && questions().length === 0)
   const disabled = createMemo(() => permissions().length > 0 || questions().length > 0)
+  const composerVisible = createMemo(() => visible() && !portalSession())
 
   const pending = createMemo(() => {
     const completed = messages().findLastIndex((message) => message.role === "assistant" && message.time.completed)
@@ -1304,18 +1326,18 @@ export function Session() {
                 <Show when={session()?.parentID}>
                   <SubagentFooter />
                 </Show>
-                <Show when={visible()}>
+                <Show when={composerVisible()}>
                   <pluginRuntime.Slot
                     name="session_prompt"
                     mode="replace"
                     session_id={route.sessionID}
-                    visible={visible()}
+                    visible={composerVisible()}
                     disabled={disabled()}
                     on_submit={toBottom}
                     ref={bind}
                   >
                     <Prompt
-                      visible={visible()}
+                      visible={composerVisible()}
                       ref={bind}
                       disabled={disabled()}
                       onSubmit={() => {
@@ -1372,12 +1394,12 @@ function UserMessage(props: {
         <box
           id={props.message.id}
           ref={(el: BoxRenderable) => alwaysSeparate.add(el)}
-          border={["left"]}
-          borderColor={color()}
-          customBorderChars={SplitBorder.customBorderChars}
           marginTop={props.index === 0 ? 0 : 1}
         >
           <box
+            border={["left"]}
+            borderColor={color()}
+            customBorderChars={SplitBorder.customBorderChars}
             onMouseOver={() => {
               setHover(true)
             }}

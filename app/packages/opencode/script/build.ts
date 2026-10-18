@@ -16,7 +16,8 @@ const generated = await import("./generate.ts")
 import { Script } from "@opencode-ai/script"
 import pkg from "../package.json"
 
-const OpenJobVersion = process.env["OPENJOB_VERSION"] ?? "dev"
+const declaredOpenJobVersion = (await Bun.file(path.resolve(dir, "../../../VERSION")).text().catch(() => "")).trim()
+const OpenJobVersion = process.env["OPENJOB_VERSION"] || declaredOpenJobVersion || "dev"
 const binaryName = "openjob"
 
 const singleFlag = process.argv.includes("--single")

@@ -65,6 +65,7 @@ import { FrecencyProvider } from "./component/prompt/frecency"
 import { PromptStashProvider } from "./component/prompt/stash"
 import { ToastProvider, useToast } from "./ui/toast"
 import { isDefaultTitle } from "./util/session"
+import { PORTAL_BATCH_MAX, parsePortalUrls, portalUrlCount, rememberPortalSessions } from "./util/portal-batch"
 import { KVProvider, useKV } from "./context/kv"
 import * as Model from "./util/model"
 import { ArgsProvider, useArgs, type Args } from "./context/args"
@@ -996,53 +997,78 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
             toast.show({ message: "Pick a model before adding a portal.", variant: "error" })
             return
           }
-          // Ask for the portal up front: /add-portal starts at its interview
-          // otherwise, and a URL given here skips straight to reconnaissance.
+          // Ask for the portals up front: /add-portal starts at its interview
+          // otherwise, and URLs given here skip straight to reconnaissance.
           const entered = await DialogPrompt.show(dialog, "Add portal URL", {
-            placeholder: "https://www.example.com",
+            placeholder: "https://a.example.com https://b.example.com",
             description: () => (
               <text fg={theme.textMuted}>
-                OpenJob inspects this job board, then generates a search skill for it under .agents/skills.
+                OpenJob inspects each job board and generates a search skill for it under .agents/skills. Separate
+                portals with spaces, commas, or new lines — up to 5 run together.
               </text>
             ),
           })
-          const typed = entered?.trim() ?? ""
-          if (!typed) {
+          const urls = parsePortalUrls(entered ?? "")
+          if (!urls.length) {
             dialog.clear()
             return
           }
-          const url = /^https?:\/\//i.test(typed) ? typed : `https://${typed}`
           const variant = local.model.variant.current()
-          const created = await sdk.client.session.create({
-            directory,
-            agent: agent.name,
-            model: { providerID: model.providerID, id: model.modelID, variant },
-          })
-          if (created.error || !created.data) {
+          const started: string[] = []
+          for (const url of urls) {
+            const created = await sdk.client.session.create({
+              directory,
+              agent: agent.name,
+              model: { providerID: model.providerID, id: model.modelID, variant },
+            })
+            if (created.error || !created.data) {
+              toast.show({ message: `Could not start a session for ${url}.`, variant: "error" })
+              continue
+            }
+            started.push(created.data.id)
+          }
+          if (!started.length) {
             dialog.clear()
-            toast.show({ message: "Could not start a session for /add-portal.", variant: "error" })
             return
           }
-          const sessionID = created.data.id
-          // Show the session before the command round-trip so a slow or failed
-          // start is never a silent no-op.
-          route.navigate({ type: "session", sessionID })
+          rememberPortalSessions(kv, started)
+          // Show the first session before the command round-trips so a slow or
+          // failed start is never a silent no-op.
+          route.navigate({ type: "session", sessionID: started[0]! })
           dialog.clear()
-          const sent = await sdk.client.session
-            .command({
-              sessionID,
-              command: "add-portal",
-              arguments: url,
-              agent: agent.name,
-              model: `${model.providerID}/${model.modelID}`,
-              variant,
-              parts: [],
+          if (started.length > 1) {
+            toast.show({
+              message: `${started.length} portals running — answer the prompts as they appear.`,
+              variant: "info",
             })
-            .catch((error: unknown) => {
-              toast.show({ message: errorMessage(error), variant: "error" })
-              return undefined
-            })
-          if (sent?.error) toast.show({ message: "Could not run /add-portal.", variant: "error" })
+          }
+          if (portalUrlCount(entered ?? "") > PORTAL_BATCH_MAX) {
+            toast.show({ message: `Only the first ${PORTAL_BATCH_MAX} portals were started.`, variant: "error" })
+          }
+          // Do not await: POST /session/{id}/command resolves only when that
+          // session's agent run ends, and an add-portal run parks on the user's
+          // answer to a question tool, so awaiting here would leave portals 2..N
+          // unstarted until portal 1 finished. Same shape as the fork calls above.
+          for (const [index, url] of urls.entries()) {
+            const sessionID = started[index]
+            if (!sessionID) continue
+            void sdk.client.session
+              .command({
+                sessionID,
+                command: "add-portal",
+                arguments: url,
+                agent: agent.name,
+                model: `${model.providerID}/${model.modelID}`,
+                variant,
+                parts: [],
+              })
+              .then((sent) => {
+                if (sent?.error) toast.show({ message: `Could not run /add-portal for ${url}.`, variant: "error" })
+              })
+              .catch((error: unknown) => {
+                toast.show({ message: errorMessage(error), variant: "error" })
+              })
+          }
         },
       },
       {

@@ -291,8 +291,11 @@ export function resolveTheme(theme: ThemeJson, mode: "dark" | "light") {
   // Handle thinkingOpacity - optional with default of 0.6
   const thinkingOpacity = theme.theme.thinkingOpacity ?? 0.6
 
+  const background = resolved.background!
   return {
     ...resolved,
+    // Let the terminal draw the canvas while keeping the theme's RGB for contrast calculations.
+    background: RGBA.fromValues(background.r, background.g, background.b, 0),
     _hasSelectedListItemText: hasSelectedListItemText,
     thinkingOpacity,
   } as Theme

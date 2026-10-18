@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
 import { mkdir, writeFile } from "node:fs/promises"
 import path from "node:path"
-import type { TerminalColors } from "@opentui/core"
+import { RGBA, type TerminalColors } from "@opentui/core"
 import { DEFAULT_THEMES, addTheme, allThemes, hasTheme, resolveTheme, terminalMode } from "../src/theme"
 import { discoverThemes } from "../src/context/theme"
 import { tmpdir } from "./fixture/fixture"
@@ -42,6 +42,15 @@ test("resolveTheme rejects circular color refs", () => {
   item.defs = { ...item.defs, one: "two", two: "one" }
   item.theme.primary = "one"
   expect(() => resolveTheme(item, "dark")).toThrow("Circular color reference")
+})
+
+test("resolveTheme leaves the main background transparent", () => {
+  const item = structuredClone(DEFAULT_THEMES.opencode)
+  item.theme.background = "#123456"
+  const background = resolveTheme(item, "dark").background
+  const expected = RGBA.fromHex("#123456")
+  expect(background.a).toBe(0)
+  expect([background.r, background.g, background.b]).toEqual([expected.r, expected.g, expected.b])
 })
 
 function terminalColors(defaultBackground: string | null, palette: Array<string | null> = []): TerminalColors {

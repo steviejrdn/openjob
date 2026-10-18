@@ -123,6 +123,9 @@ openjob --session <id>   # continue a specific session
 Inside the TUI, start with `/setup`. The full workflow guide lives in
 [WORKSPACE.md](WORKSPACE.md).
 
+The TUI's main background stays transparent, so the terminal's own background
+shows through. Dialogs and panels keep their theme colors.
+
 ### Starting a workspace
 
 The repository (or the installer's workspace template) is an OpenJob **host**:
@@ -139,9 +142,11 @@ openjob
 ```
 
 The host home screen is a launcher rather than a prompt: it shows the version
-and an inline user picker. Until the first user exists the picker offers only
-**Add user…**, and the agent is the built-in Build agent — it switches to the
-OpenJob agent once you are inside a user workspace.
+declared in the repository-root `VERSION` file, which is also embedded in
+release binaries. Release tags must match `VERSION`. The screen also shows an
+inline user picker. Until the first user exists the picker offers only **Add
+user…**, and the agent is the built-in Build agent — it switches to the OpenJob
+agent once you are inside a user workspace.
 
 With the installed binary you do not need to `cd` anywhere: running `openjob`
 from any directory — including inside a user workspace — opens the installed
