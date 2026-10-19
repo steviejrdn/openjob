@@ -14,7 +14,14 @@ you for interviews.
 
 ## What this is
 
-A structured workflow that turns OpenJob into a full-stack job application assistant. The core workflow (self-profiling, fit evaluation, and the drafter-reviewer application pipeline) is **language- and country-agnostic**. The job portal search skills are built for the Danish market (Jobindex, Jobnet, Akademikernes Jobbank, etc.), but the pattern is designed to be swapped for your local job boards.
+A structured workflow that turns OpenJob into a full-stack job application
+assistant. The core workflow (self-profiling, fit evaluation, and the
+drafter-reviewer application pipeline) is **language- and country-agnostic**.
+The job portal search skills that ship with the workflow are inherited from
+AI Job Search and built for the Danish market (Jobindex, Jobnet, Akademikernes
+Jobbank, etc.); OpenJob adds Indonesian boards (Bossai/Boss.id, Dealls,
+Glints, Kalibrr, Karirhub) on the same contract. The pattern is designed to be
+swapped for your local job boards.
 
 ```
 /setup          /scrape              /apply <url>
@@ -322,7 +329,7 @@ If you prefer doing it by hand, the manual route still works: update the guidanc
 
 ### Job search tools
 
-The four Danish CLI tools in `.agents/skills/` (Jobbank, Jobdanmark, Jobindex, Jobnet) demonstrate the pattern for building a job-portal integration for a specific market. If you're in a different country, open the **host** workspace, press `ctrl+p`, and pick **Add job portal** (portals live in the shared `.agents/`, so adding one there covers every user). A box asks for the portal URL first — type it (a bare domain like `seek.com.au` works; `https://` is added) and the session starts straight on that portal instead of interviewing you:
+The four Danish CLI tools in `.agents/skills/` (Jobbank, Jobdanmark, Jobindex, Jobnet), inherited from AI Job Search, demonstrate the pattern for building a job-portal integration for a specific market. If you're in a different country, open the **host** workspace, press `ctrl+p`, and pick **Add job portal** (portals live in the shared `.agents/`, so adding one there covers every user). A box asks for the portal URL first — type it (a bare domain like `seek.com.au` works; `https://` is added) and the session starts straight on that portal instead of interviewing you:
 
 The command investigates the portal (search-URL pattern, result-page structure, robots.txt/access rules), scaffolds a CLI skill with the same structure, commands, and output contract as the shipped ones, and test-runs a live query before registering anything. Auth-walled portals are declined, and portals with restrictive terms get a prominent personal-use-only warning in the generated skill. The generated skill is market-specific and lives in your local `.agents/skills/`; the generator itself is the universal part.
 

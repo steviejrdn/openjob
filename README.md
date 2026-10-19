@@ -30,9 +30,11 @@ every command grounds its claims against. Run `/setup` once, then `/scrape`,
 - Bundled workspace: commands, skills, agents, portal CLIs, and Python tools
 - Multi-agent pipeline: fit evaluation, drafting, and an independent reviewer
 - LaTeX CV (moderncv/banking) and cover letter (`cover.cls`) templates
-- Job portal search CLIs for Denmark (Jobbank, Jobdanmark, Jobindex, Jobnet),
-  Indonesia (Bossai/Boss.id, Dealls, Glints, Kalibrr, Karirhub), and the
-  market-agnostic LinkedIn and Freehire
+- Job portal search CLIs: the Danish boards (Jobbank, Jobdanmark, Jobindex,
+  Jobnet) and the market-agnostic LinkedIn and Freehire, carried over from
+  [AI Job Search](https://github.com/MadsLorentzen/ai-job-search); the
+  Indonesian boards (Bossai/Boss.id, Dealls, Glints, Kalibrr, Karirhub) are
+  added by OpenJob
 - Batch **Add job portal**: paste up to five job board URLs at once and OpenJob
   chats each portal through its own session, all at the same time
 - Scrape and rank results projected into `documents/postings/` — a job list plus
@@ -239,7 +241,11 @@ template (`openjob-workspace.tar.gz`), and uploads the assets together with a
 
 OpenJob is a fork of [OpenCode](https://github.com/anomalyco/opencode) (MIT).
 The job-search workflow is a port of
-[AI Job Search](https://github.com/MadsLorentzen/ai-job-search) (MIT).
+[AI Job Search](https://github.com/MadsLorentzen/ai-job-search) (MIT). That
+includes the Danish portal CLIs (Jobbank, Jobdanmark, Jobindex, Jobnet) and
+the `linkedin-search` and `freehire-search` skills; the Indonesian portal CLIs
+are OpenJob's own additions on top of the same contract.
+
 See [LICENSE](LICENSE).
 
 OpenJob is not affiliated with, or endorsed by, OpenCode/Anomaly or the AI Job
