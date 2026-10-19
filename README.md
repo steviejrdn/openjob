@@ -30,7 +30,11 @@ every command grounds its claims against. Run `/setup` once, then `/scrape`,
 - Bundled workspace: commands, skills, agents, portal CLIs, and Python tools
 - Multi-agent pipeline: fit evaluation, drafting, and an independent reviewer
 - LaTeX CV (moderncv/banking) and cover letter (`cover.cls`) templates
-- Job portal search CLIs (Jobbank, Jobdanmark, Jobindex, Jobnet, LinkedIn, Freehire)
+- Job portal search CLIs for Denmark (Jobbank, Jobdanmark, Jobindex, Jobnet),
+  Indonesia (Bossai/Boss.id, Dealls, Glints, Kalibrr, Karirhub), and the
+  market-agnostic LinkedIn and Freehire
+- Batch **Add job portal**: paste up to five job board URLs at once and OpenJob
+  chats each portal through its own session, all at the same time
 - Scrape and rank results projected into `documents/postings/` — a job list plus
   one Markdown note per posting, so the shortlist survives the session
 - Resumable `/apply`: an application ledger records step progress per
@@ -56,7 +60,7 @@ every command grounds its claims against. Run `/setup` once, then `/scrape`,
 | `/upskill` | Turn role gaps into a learning plan |
 | `/html-report` | Turn the tracker into a shareable report |
 | `/add-template` | Register a custom CV/cover template |
-| Add job portal *(host mode)* | Enter a job board URL to generate a new portal search CLI |
+| Add job portal *(host mode)* | Enter one or more job board URLs (up to five, separated by spaces, commas, or new lines) to generate portal search CLIs |
 | `/reset` | Clear personal data from the workspace |
 
 ## Prerequisites
